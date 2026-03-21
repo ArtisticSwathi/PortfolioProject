@@ -188,6 +188,7 @@ function FullscreenBtn() { return null }
 function AboutCard({ isDarkMode, aboutRef }) {
   const [slide, setSlide] = useState(0)
   const accent = isDarkMode ? '#bb86fc' : '#7c3aed'
+  const cardW  = isMobileDevice ? 210 : 270
 
   const skills = [
     { name: 'Blender',        icon: '🎨', level: 90 },
@@ -199,17 +200,20 @@ function AboutCard({ isDarkMode, aboutRef }) {
 
   return (
     <div ref={aboutRef} style={{
-      position: 'absolute', top: '32%', left: '34%',
+      position: 'absolute',
+      top: '32%',
+      left: isMobileDevice ? '28%' : '38%',
       transform: 'translateY(-50%)',
-      width: '270px',
+      width: `${cardW}px`,
       fontFamily: '"Inter", sans-serif',
       background: isDarkMode ? 'rgba(20,20,20,0.96)' : 'rgba(255,255,255,0.97)',
-      backdropFilter: 'blur(16px)', borderRadius: '16px',
+      backdropFilter: 'blur(16px)',
+      borderRadius: '16px',
       color: isDarkMode ? '#fff' : '#111',
       border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.07)'}`,
       boxShadow: '0 20px 48px rgba(0,0,0,0.3)',
       opacity: 0, pointerEvents: 'none', zIndex: 10,
-      overflow: 'hidden',
+      overflow: 'hidden',   // ← keeps border radius
       transition: 'background 0.3s, border 0.3s, color 0.3s',
     }}>
 
@@ -225,58 +229,62 @@ function AboutCard({ isDarkMode, aboutRef }) {
         ))}
       </div>
 
-      {/* Slider */}
+      {/* Slider — width = 2 × cardW, slides by cardW */}
       <div style={{
         display: 'flex',
-        width: '540px',
-        transform: `translateX(${slide * -270}px)`,
+        width: `${cardW * 2}px`,
+        transform: `translateX(${slide * -cardW}px)`,
         transition: 'transform 0.35s ease',
       }}>
 
-        {/* About slide */}
-        <div style={{ width: '270px', padding: '10px 22px 18px', flexShrink: 0 }}>
-          <h1 style={{ fontSize: '20px', margin: '0 0 10px', fontWeight: '800' }}>
+        {/* ── About slide ── */}
+        <div style={{
+          width: `${cardW}px`,
+          padding: isMobileDevice ? '8px 14px 14px' : '10px 22px 18px',
+          flexShrink: 0, boxSizing: 'border-box',
+        }}>
+          <h1 style={{ fontSize: isMobileDevice ? '15px' : '20px', margin: '0 0 8px', fontWeight: '800' }}>
             Hi, I'm <span style={{ color: accent }}>Swathi</span>
           </h1>
-          <p style={{ fontSize: '12.5px', lineHeight: '1.7', margin: '0 0 14px', fontWeight: '500' }}>
+          <p style={{ fontSize: isMobileDevice ? '10px' : '12.5px', lineHeight: '1.6', margin: '0 0 12px', fontWeight: '500' }}>
             3rd-year Engineering student specialising in full-stack development and immersive 3D web experiences. Aspiring to work abroad.
           </p>
-          <button
-            onClick={() => setSlide(1)}
-            style={{
-              background: accent, color: '#fff', border: 'none',
-              padding: '7px 16px', borderRadius: '20px',
-              fontSize: '11px', fontWeight: '700', cursor: 'pointer',
-              fontFamily: '"Inter", sans-serif',
-              display: 'flex', alignItems: 'center', gap: '5px',
-            }}
-          >
+          <button onClick={() => setSlide(1)} style={{
+            background: accent, color: '#fff', border: 'none',
+            padding: isMobileDevice ? '5px 12px' : '7px 16px',
+            borderRadius: '20px',
+            fontSize: isMobileDevice ? '9px' : '11px',
+            fontWeight: '700', cursor: 'pointer',
+            fontFamily: '"Inter", sans-serif',
+            display: 'flex', alignItems: 'center', gap: '5px',
+          }}>
             My Skills →
           </button>
         </div>
 
-        {/* Skills slide */}
-        <div style={{ width: '270px', padding: '10px 22px 18px', flexShrink: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <button
-              onClick={() => setSlide(0)}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: accent, fontSize: '18px', padding: 0, lineHeight: 1,
-              }}
-            >←</button>
-            <h2 style={{ fontSize: '16px', fontWeight: '800', margin: 0 }}>
+        {/* ── Skills slide ── */}
+        <div style={{
+          width: `${cardW}px`,
+          padding: isMobileDevice ? '8px 14px 14px' : '10px 22px 18px',
+          flexShrink: 0, boxSizing: 'border-box',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+            <button onClick={() => setSlide(0)} style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: accent, fontSize: '16px', padding: 0, lineHeight: 1,
+            }}>←</button>
+            <h2 style={{ fontSize: isMobileDevice ? '13px' : '16px', fontWeight: '800', margin: 0 }}>
               My <span style={{ color: accent }}>Skills</span>
             </h2>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobileDevice ? '7px' : '9px' }}>
             {skills.map((s, i) => (
               <div key={i}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: '700' }}>{s.icon} {s.name}</span>
-                  <span style={{ fontSize: '10px', color: accent, fontWeight: '700' }}>{s.level}%</span>
+                  <span style={{ fontSize: isMobileDevice ? '9px' : '11px', fontWeight: '700' }}>{s.icon} {s.name}</span>
+                  <span style={{ fontSize: isMobileDevice ? '8px' : '10px', color: accent, fontWeight: '700' }}>{s.level}%</span>
                 </div>
-                <div style={{ height: '4px', background: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+                <div style={{ height: '3px', background: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
                   <div style={{
                     height: '100%', borderRadius: '2px',
                     background: `linear-gradient(90deg, ${accent}, #a855f7)`,
@@ -292,7 +300,6 @@ function AboutCard({ isDarkMode, aboutRef }) {
     </div>
   )
 }
-
 
 // ─── SIDE CARD ────────────────────────────────────────────────────────────────
 function SideCard({ isDarkMode, sideRef, projectIndex }) {

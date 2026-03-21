@@ -6,44 +6,40 @@ import * as THREE from 'three'
 export function ScrollWatcher({ aboutRef, monitorRef, sideRef, phoneRef }) {
   const scroll = useScroll()
 
-useFrame(() => {
-  const o = scroll.offset
+  useFrame(() => {
+    const o = scroll.offset
 
-  // About: shows only at book stop (0.12 - 0.45)
-  const aboutIn    = Math.max(0, Math.min(1, (o - 0.10) / 0.06))
-  const aboutOut   = Math.max(0, Math.min(1, 1 - (o - 0.42) / 0.05))
-  const aboutAlpha = Math.min(aboutIn, aboutOut)
+    // About: ONLY at books stop
+    const aboutIn    = Math.max(0, Math.min(1, (o - 0.10) / 0.06))
+    const aboutOut   = Math.max(0, Math.min(1, 1 - (o - 0.42) / 0.05))
+    const aboutAlpha = Math.min(aboutIn, aboutOut)
 
-  // Monitor + side: shows ONLY at monitor stop (0.57 - 0.80)
-  const monitorIn    = Math.max(0, Math.min(1, (o - 0.56) / 0.05))
-  const monitorOut   = Math.max(0, Math.min(1, 1 - (o - 0.78) / 0.04))
-  const monitorAlpha = Math.min(monitorIn, monitorOut)
+    // Monitor + side: ONLY at monitor stop
+    const monitorIn    = Math.max(0, Math.min(1, (o - 0.56) / 0.05))
+    const monitorOut = Math.max(0, Math.min(1, 1 - (o - 0.76) / 0.02))
+    const monitorAlpha = o < 0.50 ? 0 : Math.min(monitorIn, monitorOut)
 
-  // Phone: shows ONLY at phone stop (0.92+)
-  const phoneAlpha = Math.max(0, Math.min(1, (o - 0.93) / 0.04))
+    // Phone: ONLY at phone stop
+    const phoneAlpha = Math.max(0, Math.min(1, (o - 0.93) / 0.04))
 
-  // ── Force hide everything when near start ──
-  const finalAbout   = o < 0.05 ? 0 : aboutAlpha
-  const finalMonitor = o < 0.05 ? 0 : monitorAlpha
-  const finalPhone   = o < 0.05 ? 0 : phoneAlpha
+    if (aboutRef.current) {
+      aboutRef.current.style.opacity       = aboutAlpha.toFixed(3)
+      aboutRef.current.style.pointerEvents = aboutAlpha > 0.5 ? 'auto' : 'none'
+    }
+    if (monitorRef.current) {
+      monitorRef.current.style.opacity       = monitorAlpha.toFixed(3)
+      monitorRef.current.style.pointerEvents = monitorAlpha > 0.5 ? 'auto' : 'none'
+    }
+    if (sideRef.current) {
+      sideRef.current.style.opacity       = monitorAlpha.toFixed(3)
+      sideRef.current.style.pointerEvents = monitorAlpha > 0.5 ? 'auto' : 'none'
+    }
+    if (phoneRef.current) {
+      phoneRef.current.style.opacity       = phoneAlpha.toFixed(3)
+      phoneRef.current.style.pointerEvents = phoneAlpha > 0.5 ? 'auto' : 'none'
+    }
+  })
 
-  if (aboutRef.current) {
-    aboutRef.current.style.opacity       = finalAbout.toFixed(3)
-    aboutRef.current.style.pointerEvents = finalAbout > 0.5 ? 'auto' : 'none'
-  }
-  if (monitorRef.current) {
-    monitorRef.current.style.opacity       = finalMonitor.toFixed(3)
-    monitorRef.current.style.pointerEvents = finalMonitor > 0.5 ? 'auto' : 'none'
-  }
-  if (sideRef.current) {
-    sideRef.current.style.opacity       = finalMonitor.toFixed(3)
-    sideRef.current.style.pointerEvents = finalMonitor > 0.5 ? 'auto' : 'none'
-  }
-  if (phoneRef.current) {
-    phoneRef.current.style.opacity       = finalPhone.toFixed(3)
-    phoneRef.current.style.pointerEvents = finalPhone > 0.5 ? 'auto' : 'none'
-  }
-})
   return null
 }
 
