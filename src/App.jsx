@@ -185,13 +185,23 @@ function RotateScreen() {
 
 function FullscreenBtn() { return null }
 
-// ─── ABOUT CARD ───────────────────────────────────────────────────────────────
 function AboutCard({ isDarkMode, aboutRef }) {
+  const [slide, setSlide] = useState(0)
   const accent = isDarkMode ? '#bb86fc' : '#7c3aed'
+
+  const skills = [
+    { name: 'Blender',        icon: '🎨', level: 90 },
+    { name: 'React',          icon: '⚛️', level: 85 },
+    { name: 'Three.js',       icon: '🌐', level: 80 },
+    { name: 'JavaScript ES6', icon: '⚡', level: 88 },
+    { name: 'HTML & CSS',     icon: '🖥️', level: 92 },
+  ]
+
   return (
     <div ref={aboutRef} style={{
       position: 'absolute', top: '32%', left: '38%',
-      transform: 'translateY(-50%)', width: '270px', padding: '22px',
+      transform: 'translateY(-50%)',
+      width: '270px',
       fontFamily: '"Inter", sans-serif',
       background: isDarkMode ? 'rgba(20,20,20,0.96)' : 'rgba(255,255,255,0.97)',
       backdropFilter: 'blur(16px)', borderRadius: '16px',
@@ -199,18 +209,90 @@ function AboutCard({ isDarkMode, aboutRef }) {
       border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.07)'}`,
       boxShadow: '0 20px 48px rgba(0,0,0,0.3)',
       opacity: 0, pointerEvents: 'none', zIndex: 10,
+      overflow: 'hidden',
       transition: 'background 0.3s, border 0.3s, color 0.3s',
     }}>
-      <h1 style={{ fontSize: '20px', margin: '0 0 10px', fontWeight: '800' }}>
-        Hi, I'm <span style={{ color: accent }}>Swathi</span>
-      </h1>
-      <p style={{ fontSize: '12.5px', lineHeight: '1.7', margin: 0, fontWeight: '500' }}>
-        I'm a 3rd-year Engineering student specialising in full-stack
-        development and immersive 3D web experiences. Aspiring to work abroad.
-      </p>
+
+      {/* Dots */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', padding: '10px 0 2px' }}>
+        {[0,1].map(i => (
+          <div key={i} style={{
+            width: i === slide ? '16px' : '6px', height: '6px',
+            borderRadius: '3px',
+            background: i === slide ? accent : 'rgba(128,128,128,0.25)',
+            transition: 'all 0.3s',
+          }}/>
+        ))}
+      </div>
+
+      {/* Slider */}
+      <div style={{
+        display: 'flex',
+        width: '540px',
+        transform: `translateX(${slide * -270}px)`,
+        transition: 'transform 0.35s ease',
+      }}>
+
+        {/* About slide */}
+        <div style={{ width: '270px', padding: '10px 22px 18px', flexShrink: 0 }}>
+          <h1 style={{ fontSize: '20px', margin: '0 0 10px', fontWeight: '800' }}>
+            Hi, I'm <span style={{ color: accent }}>Swathi</span>
+          </h1>
+          <p style={{ fontSize: '12.5px', lineHeight: '1.7', margin: '0 0 14px', fontWeight: '500' }}>
+            3rd-year Engineering student specialising in full-stack development and immersive 3D web experiences. Aspiring to work abroad.
+          </p>
+          <button
+            onClick={() => setSlide(1)}
+            style={{
+              background: accent, color: '#fff', border: 'none',
+              padding: '7px 16px', borderRadius: '20px',
+              fontSize: '11px', fontWeight: '700', cursor: 'pointer',
+              fontFamily: '"Inter", sans-serif',
+              display: 'flex', alignItems: 'center', gap: '5px',
+            }}
+          >
+            My Skills →
+          </button>
+        </div>
+
+        {/* Skills slide */}
+        <div style={{ width: '270px', padding: '10px 22px 18px', flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <button
+              onClick={() => setSlide(0)}
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: accent, fontSize: '18px', padding: 0, lineHeight: 1,
+              }}
+            >←</button>
+            <h2 style={{ fontSize: '16px', fontWeight: '800', margin: 0 }}>
+              My <span style={{ color: accent }}>Skills</span>
+            </h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
+            {skills.map((s, i) => (
+              <div key={i}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: '700' }}>{s.icon} {s.name}</span>
+                  <span style={{ fontSize: '10px', color: accent, fontWeight: '700' }}>{s.level}%</span>
+                </div>
+                <div style={{ height: '4px', background: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%', borderRadius: '2px',
+                    background: `linear-gradient(90deg, ${accent}, #a855f7)`,
+                    width: `${s.level}%`,
+                  }}/>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
     </div>
   )
 }
+
 
 // ─── SIDE CARD ────────────────────────────────────────────────────────────────
 function SideCard({ isDarkMode, sideRef, projectIndex }) {
@@ -329,7 +411,7 @@ function PhoneCard({ isDarkMode, phoneRef }) {
           <div style={{ fontSize: '11px', fontWeight: '800', color: '#fff', marginTop: '1px' }}>Swathi S</div>
           <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.75)', marginTop: '1px', fontWeight: '500' }}>Frontend Dev · 3D Artist</div>
         </div>
-        <div style={{ padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: '0', flex: 1, overflow: 'hidden', justifyContent: 'space-evenly' }}>
+<div style={{ padding: '4px 6px', display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, overflow: 'hidden', justifyContent: 'flex-start', marginTop: '6px' }}>
 
 {links.map((link, i) => {
   const isTel = link.href.startsWith('tel')
@@ -347,7 +429,7 @@ function PhoneCard({ isDarkMode, phoneRef }) {
           }, 1000)
         }
       }}
-      style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 8px', background: '#fff', borderRadius: '8px', textDecoration: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer' }}
+  style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 6px', background: '#fff', borderRadius: '6px', textDecoration: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer' }}
     >
       <div style={{ flexShrink: 0 }}>{link.icon}</div>
       <div style={{ overflow: 'hidden', minWidth: 0 }}>
@@ -521,6 +603,20 @@ useEffect(() => {
         }}>
           {isDarkMode ? '☀ Light mode' : '☾ Dark mode'}
         </button>
+   <a     
+href="/resume.pdf"
+  download="Swathi_Resume.pdf"
+  style={{
+    position: 'absolute', top: '20px', right: '20px', zIndex: 20,
+    padding: '10px 20px', background: '#7c3aed',
+    color: 'white', textDecoration: 'none',
+    borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer',
+    fontSize: '13px', fontFamily: '"Inter", sans-serif',
+    display: 'flex', alignItems: 'center', gap: '6px',
+  }}
+>
+  📄 Get CV
+</a>
 
         <Canvas shadows dpr={[1, 2]}
           gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, outputColorSpace: THREE.SRGBColorSpace }}
