@@ -199,7 +199,7 @@ function AboutCard({ isDarkMode, aboutRef }) {
 
   return (
     <div ref={aboutRef} style={{
-      position: 'absolute', top: '32%', left: '38%',
+      position: 'absolute', top: '32%', left: '34%',
       transform: 'translateY(-50%)',
       width: '270px',
       fontFamily: '"Inter", sans-serif',
