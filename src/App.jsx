@@ -20,6 +20,13 @@ const PROJECTS = [
   { title: '3D Ear Pods', desc: 'Realistic AirPods model designed and rendered in Blender.', image: '/images/project-earpods.jpg', github: 'https://github.com/ArtisticSwathi/EarPodsModel', extras: ['/images/project-earpods.jpg', '/images/earpods-2.jpg'] },
   { title: 'Traditional House', desc: '3D architectural model of a traditional house built in Blender.', image: '/images/project-house.jpg', github: 'https://github.com/ArtisticSwathi/TraditionalHouseModel/tree/main', extras: ['/images/project-house.jpg', '/images/house-2.jpg', '/images/house-3.jpg', '/images/house-4.jpg', '/images/house-5.jpg'] },
   { title: 'Donut Collection', desc: 'Classic Blender donut tutorial taken to the next level.', image: '/images/project-donut.jpg', github: 'https://github.com/ArtisticSwathi/DonutModel/tree/main', extras: ['/images/project-donut.jpg', '/images/donut-2.jpg'] },
+{ 
+  title: 'Stylized Isometric Interior', 
+  desc: 'A 3D room study featuring custom toon-shading and hand-drawn aesthetics to blend 2D art with 3D depth.', 
+  image: '/images/stylized-room-2.png', 
+  github: 'https://github.com/ArtisticSwathi/StylizedInterior', 
+  extras: ['/images/stylized-room-2.png', '/images/stylized-room-3.png', '/images/stylized-room.png'] 
+},
 ]
 
 // ─── LOADING SCREEN ───────────────────────────────────────────────────────────
