@@ -24,7 +24,7 @@ const PROJECTS = [
   title: 'Stylized Isometric Interior',
   desc: 'A 3D room study featuring custom toon-shading and hand-drawn aesthetics to blend 2D art with 3D depth.',
   image: '/images/stylized-room-2.jpg', 
-  github: 'https://github.com/ArtisticSwathi/stylizedInterior',
+  github: 'https://github.com/ArtisticSwathi/Stylized-Isometric-Interior.git',
   extras: ['/images/stylized-room-2.jpg', '/images/stylized-room-3.jpg', '/images/stylized-room.jpg']
 },
 ]
