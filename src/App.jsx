@@ -618,7 +618,7 @@ useEffect(() => {
           {isDarkMode ? '☀ Light mode' : '☾ Dark mode'}
         </button>
    <a     
-href="public/Frontend-resume.pdf"
+href="/Frontend-resume.pdf"
   style={{
     position: 'absolute', top: '20px', right: '20px', zIndex: 20,
     padding: '10px 20px', background: '#7c3aed',
