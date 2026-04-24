@@ -618,8 +618,7 @@ useEffect(() => {
           {isDarkMode ? '☀ Light mode' : '☾ Dark mode'}
         </button>
    <a     
-href="/resume.pdf"
-  download="Swathi_Resume.pdf"
+href="public/Frontend-resume.pdf"
   style={{
     position: 'absolute', top: '20px', right: '20px', zIndex: 20,
     padding: '10px 20px', background: '#7c3aed',
