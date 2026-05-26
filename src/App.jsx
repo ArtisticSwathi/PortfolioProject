@@ -82,7 +82,7 @@ const handleTap = () => {
           <h1 style={{ fontSize: '22px', fontWeight: '900', color: '#fff', margin: '0 0 4px' }}>
             Swathi's <span style={{ color: '#bb86fc' }}>3D Portfolio</span>
           </h1>
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Frontend Dev · 3D Artist</p>
+          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Fullstack Dev · 3D Artist</p>
         </div>
         <div style={{ animation: 'pulse 1.5s ease-in-out infinite' }}>
           <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.6)', margin: 0, fontWeight: '600' }}>
@@ -617,8 +617,10 @@ useEffect(() => {
         }}>
           {isDarkMode ? '☀ Light mode' : '☾ Dark mode'}
         </button>
-   <a     
-href="\Full Stack resume.pdf"
+<a 
+  href="/model/FullStack-resume.pdf" 
+  target="_blank"
+  rel="noopener noreferrer"
   style={{
     position: 'absolute', top: '20px', right: '20px', zIndex: 20,
     padding: '10px 20px', background: '#7c3aed',
