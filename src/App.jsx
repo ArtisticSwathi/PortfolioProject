@@ -114,7 +114,7 @@ const handleTap = () => {
           <h1 style={{ fontSize: '20px', fontWeight: '900', color: '#fff', margin: '0 0 4px' }}>
             Swathi's <span style={{ color: '#bb86fc' }}>3D Portfolio</span>
           </h1>
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Frontend Dev · 3D Artist</p>
+          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Fullstack Dev · 3D Artist</p>
         </div>
         <div style={{ width: '200px' }}>
           <div style={{ width: '100%', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
@@ -144,7 +144,7 @@ const handleTap = () => {
           <h1 style={{ fontSize: '20px', fontWeight: '900', color: '#fff', margin: '0 0 4px' }}>
             Swathi's <span style={{ color: '#bb86fc' }}>3D Portfolio</span>
           </h1>
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Frontend Dev · 3D Artist</p>
+          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Fullstack Dev · 3D Artist</p>
         </div>
         {/* Plain text only — no card */}
         <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.55)', margin: 0, fontWeight: '500', animation: 'fadeIn 0.4s ease' }}>
@@ -195,15 +195,28 @@ function FullscreenBtn() { return null }
 function AboutCard({ isDarkMode, aboutRef }) {
   const [slide, setSlide] = useState(0)
   const accent = isDarkMode ? '#bb86fc' : '#7c3aed'
-  const cardW  = isMobileDevice ? 210 : 270
+  const cardW  = isMobileDevice ? 240 : 300
 
-  const skills = [
-    { name: 'Blender',        icon: '🎨', level: 90 },
-    { name: 'React',          icon: '⚛️', level: 85 },
-    { name: 'Three.js',       icon: '🌐', level: 80 },
-    { name: 'JavaScript ES6', icon: '⚡', level: 88 },
-    { name: 'HTML & CSS',     icon: '🖥️', level: 92 },
-  ]
+const skillCategories = [
+    { 
+      category: 'Frontend',   
+      skills: 'HTML5, CSS3, JS(ES6+), React, Typescript',
+      // Laptop SVG
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="20" x2="22" y2="20"></line></svg>
+    },
+    { 
+      category: '3D/WebGL',   
+      skills: 'Three.js, R3F, Blender',
+      // Cube SVG
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+    },
+    { 
+      category: 'Backend',    
+      skills: 'Node.js, Express, MongoDB, REST APIs',
+      // Database/Server SVG
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+    }
+  ];
 
   return (
     <div ref={aboutRef} style={{
@@ -254,7 +267,7 @@ function AboutCard({ isDarkMode, aboutRef }) {
             Hi, I'm <span style={{ color: accent }}>Swathi</span>
           </h1>
           <p style={{ fontSize: isMobileDevice ? '10px' : '12.5px', lineHeight: '1.6', margin: '0 0 12px', fontWeight: '500' }}>
-            3rd-year Engineering student specialising in full-stack development and immersive 3D web experiences. Aspiring to work abroad.
+            Final-year Engineering student specializing in full-stack architecture and 3D web development. I engineer robust backend systems and interactive WebGL experiences.
           </p>
           <button onClick={() => setSlide(1)} style={{
             background: accent, color: '#fff', border: 'none',
@@ -269,13 +282,14 @@ function AboutCard({ isDarkMode, aboutRef }) {
           </button>
         </div>
 
-        {/* ── Skills slide ── */}
+{/* ── Skills slide ── */}
         <div style={{
           width: `${cardW}px`,
           padding: isMobileDevice ? '8px 14px 14px' : '10px 22px 18px',
           flexShrink: 0, boxSizing: 'border-box',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
             <button onClick={() => setSlide(0)} style={{
               background: 'none', border: 'none', cursor: 'pointer',
               color: accent, fontSize: '16px', padding: 0, lineHeight: 1,
@@ -284,19 +298,73 @@ function AboutCard({ isDarkMode, aboutRef }) {
               My <span style={{ color: accent }}>Skills</span>
             </h2>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: isMobileDevice ? '7px' : '9px' }}>
-            {skills.map((s, i) => (
-              <div key={i}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
-                  <span style={{ fontSize: isMobileDevice ? '9px' : '11px', fontWeight: '700' }}>{s.icon} {s.name}</span>
-                  <span style={{ fontSize: isMobileDevice ? '8px' : '10px', color: accent, fontWeight: '700' }}>{s.level}%</span>
+          
+          {/* ICON LIST LAYOUT (Fitted to original card size) */}
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            // Font family removed so it naturally inherits your sleek "Inter" font
+          }}>
+            {skillCategories.map((item, index) => (
+              <div key={index} style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                padding: isMobileDevice ? '8px 0' : '10px 0',
+                // Faint divider line between items (except the last one)
+                borderBottom: index !== skillCategories.length - 1 ? `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}` : 'none'
+              }}>
+                
+                {/* Circular Icon Background */}
+                <div style={{
+                  width: isMobileDevice ? '24px' : '28px',
+                  height: isMobileDevice ? '24px' : '28px',
+                  borderRadius: '50%',
+                  background: isDarkMode ? 'rgba(187, 134, 252, 0.15)' : 'rgba(124, 58, 237, 0.1)',
+                  color: accent,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                  marginRight: '10px'
+                }}>
+                  {/* Scales the SVG down slightly to fit the small circle */}
+                  <div style={{ transform: 'scale(0.85)', display: 'flex' }}>
+                    {item.icon}
+                  </div>
                 </div>
-                <div style={{ height: '3px', background: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
-                  <div style={{
-                    height: '100%', borderRadius: '2px',
-                    background: `linear-gradient(90deg, ${accent}, #a855f7)`,
-                    width: `${s.level}%`,
-                  }}/>
+
+                {/* Text Layout */}
+                <div style={{ display: 'flex', alignItems: 'center', flex: 1, fontSize: isMobileDevice ? '9px' : '11px' }}>
+                  
+                  {/* Category Name */}
+                  <span style={{ 
+                    width: isMobileDevice ? '50px' : '65px', 
+                    fontWeight: '700', 
+                    color: isDarkMode ? '#eee' : '#222',
+                    flexShrink: 0 
+                  }}>
+                    {item.category}
+                  </span>
+                  
+                  {/* Clean Typographic Arrow */}
+                  <span style={{ 
+                    margin: '0 6px', 
+                    color: accent, 
+                    flexShrink: 0,
+                    fontWeight: '800'
+                  }}>
+                    →
+                  </span>
+                  
+                  {/* Skills List */}
+                  <span style={{ 
+                    color: isDarkMode ? '#bbb' : '#777', 
+                    fontWeight: '500',
+                    lineHeight: '1.3' 
+                  }}>
+                    {item.skills}
+                  </span>
+                  
                 </div>
               </div>
             ))}
@@ -423,7 +491,7 @@ function PhoneCard({ isDarkMode, phoneRef }) {
         <div style={{ background: '#1a73e8', padding: '8px 10px 6px', textAlign: 'center', flexShrink: 0 }}>
           <div style={{ fontSize: '7px', fontWeight: '800', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.8)' }}>CONTACT ME</div>
           <div style={{ fontSize: '11px', fontWeight: '800', color: '#fff', marginTop: '1px' }}>Swathi S</div>
-          <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.75)', marginTop: '1px', fontWeight: '500' }}>Frontend Dev · 3D Artist</div>
+          <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.75)', marginTop: '1px', fontWeight: '500' }}>Fullstack Dev · 3D Artist</div>
         </div>
 <div style={{ padding: '4px 6px', display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, overflow: 'hidden', justifyContent: 'flex-start', marginTop: '6px' }}>
 
