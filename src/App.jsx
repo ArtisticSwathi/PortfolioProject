@@ -585,12 +585,31 @@ export default function App() {
   const [showLoading, setShowLoading] = useState(true)
     const [transitioning, setTransitioning] = useState(false) 
     const [needsFs, setNeedsFs] = useState(false)
+    const [showButtons, setShowButtons] = useState(true);
 
   const aboutRef   = useRef()
   const monitorRef = useRef()
   const sideRef    = useRef()
   const phoneRef   = useRef()
   const innerRef   = useRef()
+
+useEffect(() => {
+    const handleScroll = (e) => {
+      // Gets the scroll position from either the window or the 3D scroll container
+      const scrollPos = e.target.scrollTop || window.scrollY || 0;
+      
+      if (scrollPos > 50) {
+        setShowButtons(false);
+      } else {
+        setShowButtons(true);
+      }
+    };
+
+    // The 'true' at the end is crucial—it forces the window to capture 
+    // scroll events from React Three Fiber's internal scrolling elements.
+    window.addEventListener('scroll', handleScroll, true);
+    return () => window.removeEventListener('scroll', handleScroll, true);
+  }, []);
 
 useEffect(() => {
   const update = () => {
@@ -675,31 +694,41 @@ useEffect(() => {
         <ScrollHint />
         <FullscreenBtn />
 
-        <button onClick={() => setIsDarkMode(!isDarkMode)} style={{
+<button onClick={() => setIsDarkMode(!isDarkMode)} style={{
           position: 'absolute', top: '20px', left: '20px', zIndex: 20,
           padding: '10px 20px', background: 'transparent',
           color: isDarkMode ? 'white' : 'black',
           border: `2px solid ${isDarkMode ? 'white' : 'black'}`,
           borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer',
           fontSize: '13px', fontFamily: '"Inter", sans-serif',
+          
+          // --- NEW ANIMATION STYLES ---
+          opacity: showButtons ? 1 : 0,
+          pointerEvents: showButtons ? 'auto' : 'none',
+          transition: 'opacity 0.4s ease, border 0.3s ease, color 0.3s ease',
         }}>
           {isDarkMode ? '☀ Light mode' : '☾ Dark mode'}
         </button>
 <a 
-  href="/model/FullStack-resume.pdf" 
-  target="_blank"
-  rel="noopener noreferrer"
-  style={{
-    position: 'absolute', top: '20px', right: '20px', zIndex: 20,
-    padding: '10px 20px', background: '#7c3aed',
-    color: 'white', textDecoration: 'none',
-    borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer',
-    fontSize: '13px', fontFamily: '"Inter", sans-serif',
-    display: 'flex', alignItems: 'center', gap: '6px',
-  }}
->
-  📄 Get CV
-</a>
+          href="/model/FullStack-resume.pdf" 
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            position: 'absolute', top: '20px', right: '20px', zIndex: 20,
+            padding: '10px 20px', background: '#7c3aed',
+            color: 'white', textDecoration: 'none',
+            borderRadius: '5px', fontWeight: 'bold', cursor: 'pointer',
+            fontSize: '13px', fontFamily: '"Inter", sans-serif',
+            display: 'flex', alignItems: 'center', gap: '6px',
+
+            // --- NEW ANIMATION STYLES ---
+            opacity: showButtons ? 1 : 0,
+            pointerEvents: showButtons ? 'auto' : 'none',
+            transition: 'opacity 0.4s ease, background 0.3s ease',
+          }}
+        >
+          📄 Get CV
+        </a>
 
         <Canvas shadows dpr={[1, 2]}
           gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, outputColorSpace: THREE.SRGBColorSpace }}
