@@ -120,3 +120,60 @@ body:has(.phone-card-container:hover) .custom-cursor {
     display: none !important;
   }
 }
+
+/* Hide Dark Mode button when zoomed in on mobile & tablet sizes (coarse pointer / max 1024px) */
+@media (max-width: 1024px), (pointer: coarse) {
+  .is-zoomed .dark-mode-btn {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+}
+
+/* Mobile HTML Hotspot Overlay */
+.mobile-hotspots-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 90;
+}
+
+.mobile-hotspot {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  background-color: rgba(255, 255, 255, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.mobile-hotspot::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-sizing: border-box;
+  animation: white-hotspot-radiate 1.8s infinite ease-out;
+}
+
+@keyframes white-hotspot-radiate {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}

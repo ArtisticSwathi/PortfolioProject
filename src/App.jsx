@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useLayoutEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment } from '@react-three/drei'
 import * as THREE from 'three'
@@ -664,6 +664,25 @@ export default function App() {
   const [isZoomed, setIsZoomed] = useState(false)
   const [currentView, setCurrentView] = useState('desk')
   const [hoveredObject, setHoveredObject] = useState(null)
+  const [showHotspots, setShowHotspots] = useState(false)
+  const [threeLoaded, setThreeLoaded] = useState(false)
+
+  const handleThreeLoaded = useCallback(() => {
+    setThreeLoaded(true)
+  }, [])
+
+  const [dotsReady, setDotsReady] = useState(false)
+
+  useEffect(() => {
+    if (!showLoading && threeLoaded) {
+      const timer = setTimeout(() => {
+        setDotsReady(true)
+      }, 2000)
+      return () => clearTimeout(timer)
+    } else {
+      setDotsReady(false)
+    }
+  }, [showLoading, threeLoaded])
 
   const aboutRef   = useRef()
   const monitorRef = useRef()
@@ -699,6 +718,28 @@ export default function App() {
     }
   }, [hoveredObject, showLoading])
 
+  useEffect(() => {
+    const checkTouch = () => {
+      const isTouch = ('ontouchstart' in window) 
+        || (navigator.maxTouchPoints > 0) 
+        || (navigator.msMaxTouchPoints > 0)
+      const isMobileUA = /Mobi|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent)
+      const isTabletUA = /iPad|PlayBook|Silk/i.test(navigator.userAgent) || (navigator.userAgent.includes('Macintosh') && navigator.maxTouchPoints > 1)
+      
+      // Enforce touch devices (mobiles/tablets) only, hiding completely on desktops
+      setShowHotspots(isTouch && (isMobileUA || isTabletUA))
+    }
+    checkTouch()
+    window.addEventListener('resize', checkTouch)
+    window.addEventListener('orientationchange', checkTouch)
+    return () => {
+      window.removeEventListener('resize', checkTouch)
+      window.removeEventListener('orientationchange', checkTouch)
+    }
+  }, [])
+
+  const shouldRenderHotspots = showHotspots && !isZoomed && !transitioning && threeLoaded && dotsReady
+
   // Camera positions for each interactive object
   const cameraTargets = {
     desk: { 
@@ -726,6 +767,7 @@ export default function App() {
     currentViewRef.current = objectType
     setCurrentView(objectType)
     document.body.style.cursor = 'default' // Reset cursor immediately on click
+    setTransitioning(true)
 
     if (!cameraRef.current) return
 
@@ -782,6 +824,7 @@ export default function App() {
       duration: 1.2,
       ease: 'power2.inOut',
       onComplete: () => {
+        setTransitioning(false)
         // Show appropriate panel(s) once the camera has fully settled
         if (objectType === 'about' && aboutRef.current) {
           gsap.to(aboutRef.current, { opacity: 1, pointerEvents: 'auto', duration: 0.4 })
@@ -800,6 +843,7 @@ export default function App() {
     setHoveredObject(null)
     clickHandledRef.current = false
     document.body.style.cursor = 'default' // Reset cursor immediately
+    setTransitioning(true)
 
     // Hide all UI panels
     if (aboutRef.current) {
@@ -861,6 +905,7 @@ export default function App() {
       ease: 'power2.inOut',
       onComplete: () => {
         isZoomedRef.current = false
+        setTransitioning(false)
       }
     }, 0)
   }
@@ -959,7 +1004,7 @@ useEffect(() => {
   if (isPortrait)  return <RotateScreen />
 
   return (
-    <div className="hide-cursor" style={{
+    <div className={`hide-cursor ${isZoomed ? 'is-zoomed' : ''}`} style={{
       position: 'fixed', top: 0, left: 0,
       width: '100%', height: '100%',
       overflow: 'hidden',
@@ -1019,6 +1064,8 @@ useEffect(() => {
             currentView={currentView}
             cameraTimelineRef={cameraTimelineRef}
             onReturnToDesk={handleReturnToDesk}
+            shouldRenderHotspots={shouldRenderHotspots}
+            onLoaded={handleThreeLoaded}
           />
         </Canvas>
 
@@ -1026,12 +1073,14 @@ useEffect(() => {
         <MonitorOverlay isDarkMode={isDarkMode} monitorRef={monitorRef} sideRef={sideRef} onClose={handleReturnToDesk} />
         <PhoneCard      isDarkMode={isDarkMode} phoneRef={phoneRef} onClose={handleReturnToDesk} />
 
+        {/* Hotspots are now rendered directly inside PortfolioDesk as 3D Drei Html components */}
+
 
         <FullscreenBtn />
 
 
 
-        <button onClick={() => setIsDarkMode(!isDarkMode)} style={{
+        <button className="dark-mode-btn" onClick={() => setIsDarkMode(!isDarkMode)} style={{
           position: 'absolute', top: '20px', left: '20px', zIndex: 20,
           padding: '10px 20px', background: 'transparent',
           color: isDarkMode ? 'white' : 'black',

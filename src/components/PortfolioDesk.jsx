@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useGLTF } from '@react-three/drei'
+import { useGLTF, Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import gsap from 'gsap'
@@ -20,8 +20,26 @@ function CursorParallax({ isZoomed, isZoomedRef, camera }) {
       mouseY.current = y
     }
 
+    const handleTouchMove = (e) => {
+      if (isZoomedRef && isZoomedRef.current) return
+      if (e.touches && e.touches.length > 0) {
+        const touch = e.touches[0]
+        const x = (touch.clientX / window.innerWidth) * 2 - 1
+        const y = -(touch.clientY / window.innerHeight) * 2 + 1
+        mouseX.current = x
+        mouseY.current = y
+      }
+    }
+
     window.addEventListener('mousemove', handleMouseMove)
-    return () => window.removeEventListener('mousemove', handleMouseMove)
+    window.addEventListener('touchmove', handleTouchMove, { passive: true })
+    window.addEventListener('touchstart', handleTouchMove, { passive: true })
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('touchmove', handleTouchMove)
+      window.removeEventListener('touchstart', handleTouchMove)
+    }
   }, [isZoomedRef])
 
   useFrame(() => {
@@ -49,10 +67,13 @@ export default function PortfolioDesk({
   hoveredObject,
   currentView,
   cameraTimelineRef,
-  onReturnToDesk
+  onReturnToDesk,
+  shouldRenderHotspots,
+  onLoaded
 }) {
   const { scene: glbScene } = useGLTF('./model/Baking-donee.glb')
   const { camera } = useThree()
+
 
   useEffect(() => {
     if (!glbScene) return
@@ -68,7 +89,11 @@ export default function PortfolioDesk({
         }
       }
     })
-  }, [glbScene])
+    
+    if (onLoaded) {
+      onLoaded()
+    }
+  }, [glbScene, onLoaded])
 
   const handlePointerOver = (e) => {
     if (isZoomedRef && isZoomedRef.current) return
@@ -110,6 +135,7 @@ export default function PortfolioDesk({
     }
   }
 
+
   return (
     <group>
       <primitive 
@@ -119,6 +145,47 @@ export default function PortfolioDesk({
         onPointerOut={handlePointerOut}
         onPointerDown={handleClick}
       />
+      
+      {shouldRenderHotspots && (
+        <group rotation={[0, Math.PI, 0]}>
+          {/* Books Hotspot */}
+          <Html center position={[0.37, 0.48, 1.496]}>
+            <div 
+              className="mobile-hotspot" 
+              onClick={() => onObjectClick('about')}
+              onTouchEnd={(e) => {
+                e.preventDefault()
+                onObjectClick('about')
+              }}
+            />
+          </Html>
+          
+          {/* Monitor Hotspot */}
+          <Html center position={[-0.136, 0.65, 1.665]}>
+            <div 
+              className="mobile-hotspot" 
+              onClick={() => onObjectClick('monitor')}
+              onTouchEnd={(e) => {
+                e.preventDefault()
+                onObjectClick('monitor')
+              }}
+            />
+          </Html>
+          
+          {/* Mobile Hotspot */}
+          <Html center position={[-0.505, 0.51, 1.45]}>
+            <div 
+              className="mobile-hotspot" 
+              onClick={() => onObjectClick('phone')}
+              onTouchEnd={(e) => {
+                e.preventDefault()
+                onObjectClick('phone')
+              }}
+            />
+          </Html>
+        </group>
+      )}
+
       <CursorParallax isZoomed={isZoomed} isZoomedRef={isZoomedRef} camera={camera} />
       {isDarkMode && (
         <pointLight position={[-0.14, 0.55, -0.8]} intensity={2.5} color="#b87af8" distance={3} />
