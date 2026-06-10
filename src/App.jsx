@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { Environment, ScrollControls, useScroll } from '@react-three/drei'
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Environment } from '@react-three/drei'
 import * as THREE from 'three'
+import gsap from 'gsap'
 import PortfolioDesk from './components/PortfolioDesk'
 
 const isMobileDevice = /Mobi|Android/i.test(navigator.userAgent)
@@ -192,7 +193,7 @@ function RotateScreen() {
 
 function FullscreenBtn() { return null }
 
-function AboutCard({ isDarkMode, aboutRef }) {
+function AboutCard({ isDarkMode, aboutRef, onClose }) {
   const [slide, setSlide] = useState(0)
   const accent = isDarkMode ? '#bb86fc' : '#7c3aed'
   const cardW  = isMobileDevice ? 240 : 300
@@ -219,7 +220,7 @@ const skillCategories = [
   ];
 
   return (
-    <div ref={aboutRef} style={{
+    <div ref={aboutRef} className="about-card-container" style={{
       position: 'absolute',
       top: '32%',
       left: isMobileDevice ? '28%' : '38%',
@@ -236,6 +237,38 @@ const skillCategories = [
       overflow: 'hidden',   // ← keeps border radius
       transition: 'background 0.3s, border 0.3s, color 0.3s',
     }}>
+
+      {/* Close Button */}
+      <button onClick={onClose} style={{
+        position: 'absolute',
+        top: '10px',
+        right: '10px',
+        background: 'none',
+        border: 'none',
+        color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+        fontSize: '15px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        zIndex: 20,
+        width: '24px',
+        height: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '50%',
+        transition: 'all 0.2s',
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.background = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'
+        e.currentTarget.style.color = accent
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.background = 'none'
+        e.currentTarget.style.color = isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)'
+      }}
+      >
+        ✕
+      </button>
 
       {/* Dots */}
       <div style={{ display: 'flex', justifyContent: 'center', gap: '5px', padding: '10px 0 2px' }}>
@@ -394,7 +427,7 @@ function SideCard({ isDarkMode, sideRef, projectIndex }) {
   }, [projectIndex, project.extras.length])
 
   return (
-    <div ref={sideRef} style={{
+    <div ref={sideRef} className="side-card-container" style={{
       position: 'absolute', top: '8%', left: '12%', width: '26%', height: '38%',
       fontFamily: '"Inter", sans-serif',
       background: isDarkMode ? 'rgba(15,10,25,0.97)' : 'rgba(255,255,255,0.97)',
@@ -428,7 +461,7 @@ function SideCard({ isDarkMode, sideRef, projectIndex }) {
 }
 
 // ─── MONITOR OVERLAY ──────────────────────────────────────────────────────────
-function MonitorOverlay({ isDarkMode, monitorRef, sideRef }) {
+function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose }) {
   const [index, setIndex] = useState(0)
   const [fade, setFade]   = useState(true)
   const accent  = isDarkMode ? '#bb86fc' : '#7c3aed'
@@ -442,13 +475,42 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef }) {
   return (
     <>
       <SideCard isDarkMode={isDarkMode} sideRef={sideRef} projectIndex={index} />
-      <div ref={monitorRef} style={{
+      <div ref={monitorRef} className="monitor-overlay-container" style={{
         position: 'absolute', top: '28%', left: '40.3%', width: '21%', height: '28%',
         fontFamily: '"Inter", sans-serif',
         background: isDarkMode ? '#0a0a0f' : '#f0ebff',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
         opacity: 0, pointerEvents: 'none', zIndex: 10,
       }}>
+        {/* Close Button */}
+        <button onClick={onClose} style={{
+          position: 'absolute',
+          top: '6px',
+          right: '6px',
+          background: 'rgba(0,0,0,0.5)',
+          border: 'none',
+          color: '#fff',
+          fontSize: '11px',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          zIndex: 20,
+          width: '18px',
+          height: '18px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '50%',
+          transition: 'all 0.2s',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = 'rgba(220,38,38,0.8)'
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = 'rgba(0,0,0,0.5)'
+        }}
+        >
+          ✕
+        </button>
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden', opacity: fade ? 1 : 0, transition: 'opacity 0.18s ease' }}>
           <img src={project.image} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%', background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%)', pointerEvents: 'none' }} />
@@ -464,7 +526,7 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef }) {
             <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
             View on GitHub
           </a>
-          <button onClick={() => go(-1)} style={{ position: 'absolute', bottom: '6px', left: '8px', background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', padding: '3px 9px', borderRadius: '6px', fontSize: '10px', fontWeight: '700', cursor: 'pointer', fontFamily: '"Inter", sans-serif' }}>← Back</button>
+          <button onClick={() => go(-1)} style={{ position: 'absolute', bottom: '6px', left: '8px', background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', padding: '3px 9px', borderRadius: '6px', fontSize: '10px', fontWeight: '700', cursor: 'pointer', fontFamily: '"Inter", sans-serif' }}>← Prev</button>
           <button onClick={() => go(1)}  style={{ position: 'absolute', bottom: '6px', right: '8px', background: accent, border: 'none', color: '#fff', padding: '3px 9px', borderRadius: '6px', fontSize: '10px', fontWeight: '700', cursor: 'pointer', fontFamily: '"Inter", sans-serif' }}>Next →</button>
         </div>
       </div>
@@ -473,54 +535,81 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef }) {
 }
 
 // ─── PHONE CONTACT CARD ───────────────────────────────────────────────────────
-function PhoneCard({ isDarkMode, phoneRef }) {
+function PhoneCard({ isDarkMode, phoneRef, onClose }) {
   const links = [
     { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="#1a73e8"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>, label: 'Email', value: 'swathi.s.3dartist@gmail.com', href: 'mailto:swathi.s.3dartist@gmail.com' },
     { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="#0077b5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>, label: 'LinkedIn', value: 'linkedin.com/swathi-sudhakar', href: 'https://www.linkedin.com/swathi-sudhakar' },
     { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="#333"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>, label: 'GitHub', value: 'github.com/ArtisticSwathi', href: 'https://github.com/ArtisticSwathi' },
-   { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.033.055a19.875 19.875 0 0 0 5.993 3.03.078.078 0 0 0 .084-.026c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>, label: 'Discord', value: 'swathi_07378', href: 'https://discord.com/users/swathi_07378' },
+    { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.033.055a19.875 19.875 0 0 0 5.993 3.03.078.078 0 0 0 .084-.026c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084-.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>, label: 'Discord', value: 'swathi_07378', href: 'https://discord.com/users/swathi_07378' },
   ]
   return (
-    <div ref={phoneRef} style={{
+    <div ref={phoneRef} className="phone-card-container" style={{
       position: 'absolute', top: '36%', left: '43.4%', width: '12.5%', height: '54.5%',
       fontFamily: '"Inter", sans-serif', opacity: 0, pointerEvents: 'none', zIndex: 10,
       overflow: 'hidden', background: 'transparent',
       transform: 'perspective(300px) rotateY(-2.3deg) rotateZ(2.6deg)',
     }}>
-      <div style={{ width: '100%', height: '100%', background: '#f5f5f5', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ width: '100%', height: '100%', background: '#f5f5f5', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+        {/* Close Button */}
+        <button onClick={onClose} style={{
+          position: 'absolute',
+          top: '6px',
+          right: '6px',
+          background: 'rgba(0,0,0,0.25)',
+          border: 'none',
+          color: '#fff',
+          fontSize: '9px',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          zIndex: 20,
+          width: '16px',
+          height: '16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: '50%',
+          transition: 'all 0.2s',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = 'rgba(220,38,38,0.8)'
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = 'rgba(0,0,0,0.25)'
+        }}
+        >
+          ✕
+        </button>
         <div style={{ background: '#1a73e8', padding: '8px 10px 6px', textAlign: 'center', flexShrink: 0 }}>
           <div style={{ fontSize: '7px', fontWeight: '800', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.8)' }}>CONTACT ME</div>
           <div style={{ fontSize: '11px', fontWeight: '800', color: '#fff', marginTop: '1px' }}>Swathi S</div>
           <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.75)', marginTop: '1px', fontWeight: '500' }}>Fullstack Dev · 3D Artist</div>
         </div>
-<div style={{ padding: '4px 6px', display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, overflow: 'hidden', justifyContent: 'flex-start', marginTop: '6px' }}>
-
-{links.map((link, i) => {
-  const isTel = link.href.startsWith('tel')
-  const isMail = link.href.startsWith('mailto')
-  
-  return (
-    <a key={i} href={link.href}
-      target={isTel || isMail ? '_self' : '_blank'}
-      rel="noopener noreferrer"
-      // ── On mobile, re-request fullscreen after link tap ──
-      onClick={() => {
-        if (isMobileDevice && (isTel || isMail)) {
-          setTimeout(() => {
-            document.documentElement.requestFullscreen?.().catch(() => {})
-          }, 1000)
-        }
-      }}
-  style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 6px', background: '#fff', borderRadius: '6px', textDecoration: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer' }}
-    >
-      <div style={{ flexShrink: 0 }}>{link.icon}</div>
-      <div style={{ overflow: 'hidden', minWidth: 0 }}>
-        <div style={{ fontSize: '6px', fontWeight: '700', color: '#888', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{link.label}</div>
-        <div style={{ fontSize: '7px', fontWeight: '600', color: '#111', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link.value}</div>
-      </div>
-    </a>
-  )
-})}
+        <div style={{ padding: '4px 6px', display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, overflow: 'hidden', justifyContent: 'flex-start', marginTop: '6px' }}>
+          {links.map((link, i) => {
+            const isTel = link.href.startsWith('tel')
+            const isMail = link.href.startsWith('mailto')
+            
+            return (
+              <a key={i} href={link.href}
+                target={isTel || isMail ? '_self' : '_blank'}
+                rel="noopener noreferrer"
+                onClick={() => {
+                  if (isMobileDevice && (isTel || isMail)) {
+                    setTimeout(() => {
+                      document.documentElement.requestFullscreen?.().catch(() => {})
+                    }, 1000)
+                  }
+                }}
+                style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 6px', background: '#fff', borderRadius: '6px', textDecoration: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer' }}
+              >
+                <div style={{ flexShrink: 0 }}>{link.icon}</div>
+                <div style={{ overflow: 'hidden', minWidth: 0 }}>
+                  <div style={{ fontSize: '6px', fontWeight: '700', color: '#888', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{link.label}</div>
+                  <div style={{ fontSize: '7px', fontWeight: '600', color: '#111', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link.value}</div>
+                </div>
+              </a>
+            )
+          })}
         </div>
         <div style={{ padding: '5px 8px 8px', textAlign: 'center', fontSize: '6px', color: '#999', fontWeight: '500', flexShrink: 0 }}>
           Open to internships · Available for work abroad
@@ -531,51 +620,35 @@ function PhoneCard({ isDarkMode, phoneRef }) {
 }
 
 // ─── CAMERA MANAGER ───────────────────────────────────────────────────────────
-function CameraManager() {
-  const scroll = useScroll()
-  useFrame((state) => {
-    const startPos    = new THREE.Vector3(0.20,   1.03,  0.37)
-    const startLook   = new THREE.Vector3(0.19,   0.86, -0.10)
-    const bookPos     = new THREE.Vector3(-0.374, 0.850, -0.300)
-    const bookLook    = new THREE.Vector3(-0.374, 0.504, -1.536)
-    const monitorPos  = new THREE.Vector3(0.150,  0.850, -0.400)
-    const monitorLook = new THREE.Vector3(0.129,  0.580, -1.400)
-    const phonePos    = new THREE.Vector3(0.176,  0.614, -1.278)
-    const phoneLook   = new THREE.Vector3(1.018,  0.314, -1.726)
-    const targetPos  = new THREE.Vector3()
-    const targetLook = new THREE.Vector3()
-    const o = scroll.offset
-    if (o < 0.12) {
-      const p = THREE.MathUtils.smoothstep(o / 0.12, 0, 1)
-      targetPos.lerpVectors(startPos, bookPos, p); targetLook.lerpVectors(startLook, bookLook, p)
-    } else if (o < 0.45) {
-      targetPos.copy(bookPos); targetLook.copy(bookLook)
-    } else if (o < 0.57) {
-      const p = THREE.MathUtils.smoothstep((o - 0.45) / 0.12, 0, 1)
-      targetPos.lerpVectors(bookPos, monitorPos, p); targetLook.lerpVectors(bookLook, monitorLook, p)
-    } else if (o < 0.80) {
-      targetPos.copy(monitorPos); targetLook.copy(monitorLook)
-    } else if (o < 0.92) {
-      const p = THREE.MathUtils.smoothstep((o - 0.80) / 0.12, 0, 1)
-      targetPos.lerpVectors(monitorPos, phonePos, p); targetLook.lerpVectors(monitorLook, phoneLook, p)
-    } else {
-      targetPos.copy(phonePos); targetLook.copy(phoneLook)
+// ─── CAMERA CAPTURE ───────────────────────────────────────────────────────────
+// Captures camera reference for use in cursor-driven interactions
+function CameraCapture({ cameraRef, cameraInitializedRef }) {
+  const { camera } = useThree()
+  
+  useLayoutEffect(() => {
+    cameraRef.current = camera
+    
+    // Set initial camera lookAt only once to prevent breaking view on dark mode toggle
+    if (cameraInitializedRef && !cameraInitializedRef.current) {
+      camera.lookAt(0.19, 0.86, -0.10)
+      cameraInitializedRef.current = true
     }
-    state.camera.position.copy(targetPos)
-    state.camera.lookAt(targetLook)
-  })
-  return null
-}
 
-// ─── SCROLL HINT ──────────────────────────────────────────────────────────────
-function ScrollHint() {
-  return (
-    <div style={{ position: 'absolute', bottom: '28px', left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', zIndex: 20, pointerEvents: 'none', animation: 'fadeInUp 1.2s ease forwards' }}>
-      <style>{`@keyframes fadeInUp{from{opacity:0;transform:translateX(-50%) translateY(12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}`}</style>
-      <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(0,0,0,0.45)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Scroll to explore</span>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.4)" strokeWidth="2.5" style={{ animation: 'bounce 1.4s ease-in-out infinite' }}><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
-  )
+    // Calculate and apply responsive FOV immediately on mount/load
+    const aspectCanvas = INIT_W / INIT_H
+    const aspectWindow = window.innerWidth / window.innerHeight
+    let fov = 32
+    if (aspectWindow < aspectCanvas) {
+      const baseFovRad = (32 * Math.PI) / 180
+      const horizontalFovRad = 2 * Math.atan(Math.tan(baseFovRad / 2) * aspectCanvas)
+      const newFovRad = 2 * Math.atan(Math.tan(horizontalFovRad / 2) / aspectWindow)
+      fov = (newFovRad * 180) / Math.PI
+    }
+    camera.fov = fov
+    camera.updateProjectionMatrix()
+  }, [camera, cameraRef, cameraInitializedRef])
+
+  return null
 }
 
 // ─── APP ──────────────────────────────────────────────────────────────────────
@@ -583,15 +656,225 @@ export default function App() {
   const [isDarkMode, setIsDarkMode]   = useState(false)
   const [isPortrait, setIsPortrait]   = useState(() => window.innerWidth < window.innerHeight)
   const [showLoading, setShowLoading] = useState(true)
-    const [transitioning, setTransitioning] = useState(false) 
-    const [needsFs, setNeedsFs] = useState(false)
-    const [showButtons, setShowButtons] = useState(true);
+  const [transitioning, setTransitioning] = useState(false) 
+  const [needsFs, setNeedsFs] = useState(false)
+  const [showButtons, setShowButtons] = useState(true)
+  
+  // Cursor-driven interaction state
+  const [isZoomed, setIsZoomed] = useState(false)
+  const [currentView, setCurrentView] = useState('desk')
+  const [hoveredObject, setHoveredObject] = useState(null)
 
   const aboutRef   = useRef()
   const monitorRef = useRef()
   const sideRef    = useRef()
   const phoneRef   = useRef()
   const innerRef   = useRef()
+  const cameraTimelineRef = useRef(null)
+  const cameraRef = useRef(null)
+  const cursorRef = useRef(null)
+  const cameraInitializedRef = useRef(false)
+  const isZoomedRef = useRef(false)
+  const clickHandledRef = useRef(false)
+  const currentViewRef = useRef('desk')
+
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`
+      }
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [])
+
+  useEffect(() => {
+    const cursor = cursorRef.current
+    if (cursor) {
+      if (hoveredObject) {
+        cursor.classList.add('clickable')
+      } else {
+        cursor.classList.remove('clickable')
+      }
+    }
+  }, [hoveredObject, showLoading])
+
+  // Camera positions for each interactive object
+  const cameraTargets = {
+    desk: { 
+      position: [0.20, 1.03, 0.37], 
+      lookAt: [0.19, 0.86, -0.10] 
+    },
+    about: { 
+      position: [-0.374, 0.850, -0.300], 
+      lookAt: [-0.374, 0.504, -1.536] 
+    },
+    monitor: { 
+      position: [0.150, 0.850, -0.400], 
+      lookAt: [0.129, 0.580, -1.400] 
+    },
+    phone: { 
+      position: [0.176, 0.614, -1.278], 
+      lookAt: [1.018, 0.314, -1.726] 
+    },
+  }
+
+  const handleObjectClick = (objectType) => {
+    setIsZoomed(true)
+    isZoomedRef.current = true
+    clickHandledRef.current = true
+    currentViewRef.current = objectType
+    setCurrentView(objectType)
+    document.body.style.cursor = 'default' // Reset cursor immediately on click
+
+    if (!cameraRef.current) return
+
+    const target = cameraTargets[objectType]
+    const camera = cameraRef.current
+
+    // Kill any existing animation
+    if (cameraTimelineRef.current) {
+      cameraTimelineRef.current.kill()
+    }
+    gsap.killTweensOf(camera.position)
+
+    // Determine starting lookAt values from the current view ref
+    const startLookAt = cameraTargets[currentViewRef.current]?.lookAt || cameraTargets.desk.lookAt
+    const lookAtValues = {
+      x: camera.position.x,
+      y: camera.position.y,
+      z: camera.position.z,
+      lookX: startLookAt[0],
+      lookY: startLookAt[1],
+      lookZ: startLookAt[2],
+    }
+
+    // Hide all panels first
+    if (aboutRef.current) {
+      gsap.to(aboutRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.2 })
+    }
+    if (monitorRef.current) {
+      gsap.to(monitorRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.2 })
+    }
+    if (sideRef.current) {
+      gsap.to(sideRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.2 })
+    }
+    if (phoneRef.current) {
+      gsap.to(phoneRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.2 })
+    }
+
+    // Create GSAP timeline for smooth camera animation with update callback
+    const timeline = gsap.timeline({
+      onUpdate: () => {
+        camera.position.set(lookAtValues.x, lookAtValues.y, lookAtValues.z)
+        camera.lookAt(lookAtValues.lookX, lookAtValues.lookY, lookAtValues.lookZ)
+      }
+    })
+    cameraTimelineRef.current = timeline
+
+    timeline.to(lookAtValues, {
+      x: target.position[0],
+      y: target.position[1],
+      z: target.position[2],
+      lookX: target.lookAt[0],
+      lookY: target.lookAt[1],
+      lookZ: target.lookAt[2],
+      duration: 1.2,
+      ease: 'power2.inOut',
+      onComplete: () => {
+        // Show appropriate panel(s) once the camera has fully settled
+        if (objectType === 'about' && aboutRef.current) {
+          gsap.to(aboutRef.current, { opacity: 1, pointerEvents: 'auto', duration: 0.4 })
+        } else if (objectType === 'monitor' && monitorRef.current && sideRef.current) {
+          gsap.to(monitorRef.current, { opacity: 1, pointerEvents: 'auto', duration: 0.4 })
+          gsap.to(sideRef.current, { opacity: 1, pointerEvents: 'auto', duration: 0.4 })
+        } else if (objectType === 'phone' && phoneRef.current) {
+          gsap.to(phoneRef.current, { opacity: 1, pointerEvents: 'auto', duration: 0.4 })
+        }
+      }
+    }, 0)
+  }
+
+  const handleReturnToDesk = () => {
+    setIsZoomed(false)
+    setHoveredObject(null)
+    clickHandledRef.current = false
+    document.body.style.cursor = 'default' // Reset cursor immediately
+
+    // Hide all UI panels
+    if (aboutRef.current) {
+      gsap.to(aboutRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.3 })
+    }
+    if (monitorRef.current) {
+      gsap.to(monitorRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.3 })
+    }
+    if (sideRef.current) {
+      gsap.to(sideRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.3 })
+    }
+    if (phoneRef.current) {
+      gsap.to(phoneRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.3 })
+    }
+
+    if (!cameraRef.current) return
+
+    const camera = cameraRef.current
+    const target = cameraTargets.desk
+
+    // Kill any existing animation
+    if (cameraTimelineRef.current) {
+      cameraTimelineRef.current.kill()
+    }
+    gsap.killTweensOf(camera.position)
+
+    // Determine starting lookAt values from the active view ref synchronously
+    const activeView = currentViewRef.current
+    currentViewRef.current = 'desk'
+    setCurrentView('desk')
+
+    const startLookAt = cameraTargets[activeView]?.lookAt || cameraTargets.desk.lookAt
+    const lookAtValues = {
+      x: camera.position.x,
+      y: camera.position.y,
+      z: camera.position.z,
+      lookX: startLookAt[0],
+      lookY: startLookAt[1],
+      lookZ: startLookAt[2],
+    }
+
+    // Animate camera back to desk view
+    const timeline = gsap.timeline({
+      onUpdate: () => {
+        camera.position.set(lookAtValues.x, lookAtValues.y, lookAtValues.z)
+        camera.lookAt(lookAtValues.lookX, lookAtValues.lookY, lookAtValues.lookZ)
+      }
+    })
+    cameraTimelineRef.current = timeline
+
+    timeline.to(lookAtValues, {
+      x: target.position[0],
+      y: target.position[1],
+      z: target.position[2],
+      lookX: target.lookAt[0],
+      lookY: target.lookAt[1],
+      lookZ: target.lookAt[2],
+      duration: 1.2,
+      ease: 'power2.inOut',
+      onComplete: () => {
+        isZoomedRef.current = false
+      }
+    }, 0)
+  }
+
+  const handleCanvasClick = (e) => {
+    if (clickHandledRef.current) {
+      clickHandledRef.current = false
+      return
+    }
+    // If click is on canvas background (not on a panel), return to desk
+    if (isZoomed && e.target.tagName === 'CANVAS') {
+      handleReturnToDesk()
+    }
+  }
 
 useEffect(() => {
     const handleScroll = (e) => {
@@ -621,6 +904,22 @@ useEffect(() => {
       window.innerHeight / INIT_H
     )
     innerRef.current.style.transform = `translate(-50%, -50%) scale(${scale})`
+
+    // Adjust camera FOV based on viewport aspect ratio to prevent horizontal cropping
+    if (cameraRef.current) {
+      const aspectCanvas = INIT_W / INIT_H
+      const aspectWindow = window.innerWidth / window.innerHeight
+      let fov = 32
+      if (aspectWindow < aspectCanvas) {
+        // Narrower screen: increase FOV to fit the scene horizontally
+        const baseFovRad = (32 * Math.PI) / 180
+        const horizontalFovRad = 2 * Math.atan(Math.tan(baseFovRad / 2) * aspectCanvas)
+        const newFovRad = 2 * Math.atan(Math.tan(horizontalFovRad / 2) / aspectWindow)
+        fov = (newFovRad * 180) / Math.PI
+      }
+      cameraRef.current.fov = fov
+      cameraRef.current.updateProjectionMatrix()
+    }
   }
   update()
   window.addEventListener('resize', update)
@@ -660,7 +959,7 @@ useEffect(() => {
   if (isPortrait)  return <RotateScreen />
 
   return (
-    <div style={{
+    <div className="hide-cursor" style={{
       position: 'fixed', top: 0, left: 0,
       width: '100%', height: '100%',
       overflow: 'hidden',
@@ -688,13 +987,51 @@ useEffect(() => {
         transformOrigin: 'center center',
         transform: 'translate(-50%, -50%) scale(1)',
       }}>
-        <AboutCard      isDarkMode={isDarkMode} aboutRef={aboutRef} />
-        <MonitorOverlay isDarkMode={isDarkMode} monitorRef={monitorRef} sideRef={sideRef} />
-        <PhoneCard      isDarkMode={isDarkMode} phoneRef={phoneRef} />
-        <ScrollHint />
+        <Canvas shadows dpr={[1, 2]}
+          gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, outputColorSpace: THREE.SRGBColorSpace }}
+          camera={{ position: [0.20, 1.03, 0.37], fov: 32 }}
+          onCreated={({ camera }) => {
+            camera.lookAt(0.19, 0.86, -0.10)
+          }}
+          style={{
+            position: 'absolute', top: 0, left: 0,
+            width: `${INIT_W}px`, height: `${INIT_H}px`,
+            background: isDarkMode ? '#050505' : '#c2b2a0',
+            touchAction: 'none',
+          }}
+          onClick={handleCanvasClick}
+        >
+          <CameraCapture cameraRef={cameraRef} cameraInitializedRef={cameraInitializedRef} />
+          <ambientLight intensity={isDarkMode ? 0.05 : 0.5} />
+          <directionalLight position={[-3, 4, 3]} intensity={isDarkMode ? 0.1 : 1.2} />
+          <Environment preset={isDarkMode ? 'night' : 'apartment'} />
+          <PortfolioDesk 
+            isDarkMode={isDarkMode} 
+            aboutRef={aboutRef} 
+            monitorRef={monitorRef} 
+            sideRef={sideRef} 
+            phoneRef={phoneRef}
+            isZoomed={isZoomed}
+            isZoomedRef={isZoomedRef}
+            onObjectClick={handleObjectClick}
+            setHoveredObject={setHoveredObject}
+            hoveredObject={hoveredObject}
+            currentView={currentView}
+            cameraTimelineRef={cameraTimelineRef}
+            onReturnToDesk={handleReturnToDesk}
+          />
+        </Canvas>
+
+        <AboutCard      isDarkMode={isDarkMode} aboutRef={aboutRef} onClose={handleReturnToDesk} />
+        <MonitorOverlay isDarkMode={isDarkMode} monitorRef={monitorRef} sideRef={sideRef} onClose={handleReturnToDesk} />
+        <PhoneCard      isDarkMode={isDarkMode} phoneRef={phoneRef} onClose={handleReturnToDesk} />
+
+
         <FullscreenBtn />
 
-<button onClick={() => setIsDarkMode(!isDarkMode)} style={{
+
+
+        <button onClick={() => setIsDarkMode(!isDarkMode)} style={{
           position: 'absolute', top: '20px', left: '20px', zIndex: 20,
           padding: '10px 20px', background: 'transparent',
           color: isDarkMode ? 'white' : 'black',
@@ -709,7 +1046,7 @@ useEffect(() => {
         }}>
           {isDarkMode ? '☀ Light mode' : '☾ Dark mode'}
         </button>
-<a 
+        <a 
           href="/model/FullStack-resume.pdf" 
           target="_blank"
           rel="noopener noreferrer"
@@ -729,25 +1066,12 @@ useEffect(() => {
         >
           📄 Get CV
         </a>
-
-        <Canvas shadows dpr={[1, 2]}
-          gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping, outputColorSpace: THREE.SRGBColorSpace }}
-          camera={{ position: [0.20, 1.03, 0.37], fov: 32 }}
-          style={{
-            position: 'absolute', top: 0, left: 0,
-            width: `${INIT_W}px`, height: `${INIT_H}px`,
-            background: isDarkMode ? '#050505' : '#c2b2a0',
-            touchAction: 'none',
-          }}
-        >
-          <ScrollControls pages={6} damping={0.6}>
-            <CameraManager />
-            <ambientLight intensity={isDarkMode ? 0.05 : 0.5} />
-            <directionalLight position={[-3, 4, 3]} intensity={isDarkMode ? 0.1 : 1.2} />
-            <Environment preset={isDarkMode ? 'night' : 'apartment'} />
-            <PortfolioDesk isDarkMode={isDarkMode} aboutRef={aboutRef} monitorRef={monitorRef} sideRef={sideRef} phoneRef={phoneRef} />
-          </ScrollControls>
-        </Canvas>
+      </div>
+      {/* Custom Cursor */}
+      <div ref={cursorRef} className="custom-cursor">
+        <div className="custom-cursor-dot" />
+        <div className="custom-cursor-ring" />
+        <div className="custom-cursor-ring-2" />
       </div>
     </div>
   )
