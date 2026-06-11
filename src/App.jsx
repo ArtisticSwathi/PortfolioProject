@@ -193,6 +193,58 @@ function RotateScreen() {
 
 function FullscreenBtn() { return null }
 
+// ─── AVATAR OVERLAY ───────────────────────────────────────────────────────────
+// Mounted the instant the 3D canvas finishes loading (no extra delay).
+// Plays exactly once — no loop. Unmounts permanently via onDone when:
+//   • the video ends naturally (onEnded), OR
+//   • the user clicks "Skip Voice".
+// The button is grouped INSIDE the same wrapper so it always stays
+// anchored near the avatar regardless of screen size.
+function AvatarOverlay({ onDone }) {
+  const videoRef                  = useRef(null)
+  const [isPlaying, setIsPlaying] = useState(false)
+
+  useEffect(() => {
+    if (!videoRef.current) return
+    const vid = videoRef.current
+    vid.muted = false
+    vid.play()
+      .then(() => setIsPlaying(true))
+      .catch(() => {
+        vid.muted = true   // audio blocked — play silently
+        vid.play().then(() => setIsPlaying(true)).catch(() => {})
+      })
+  }, [])
+
+  return (
+    // Single wrapper — fixed to bottom-center of viewport.
+    // Position:fixed creates a containing block, so the absolutely-positioned
+    // button inside will always sit relative to this wrapper (= near the avatar).
+    <div className="avatar-overlay">
+
+      {/* Skip Voice hovers just above the avatar, centered on it */}
+      {isPlaying && (
+        <button onClick={onDone} className="skip-audio-btn" title="Skip intro voice">
+          
+          <span className="skip-audio-label">Skip Voice</span>
+        </button>
+      )}
+
+      {/* Video — no loop, onEnded triggers permanent removal */}
+      <video
+        ref={videoRef}
+        src="/avathar/avathar.webm"
+        className="avatar-img"
+        playsInline
+        disablePictureInPicture
+        preload="auto"
+        onEnded={onDone}
+        style={{ pointerEvents: 'none', display: 'block' }}
+      />
+    </div>
+  )
+}
+
 function AboutCard({ isDarkMode, aboutRef, onClose }) {
   const [slide, setSlide] = useState(0)
   const accent = isDarkMode ? '#bb86fc' : '#7c3aed'
@@ -684,6 +736,22 @@ export default function App() {
     }
   }, [showLoading, threeLoaded])
 
+  // Avatar intro: mount the instant the 3D canvas finishes loading (no extra delay).
+  // avatarDismissedRef prevents it ever remounting once dismissed.
+  const [showAvatar, setShowAvatar] = useState(false)
+  const avatarDismissedRef          = useRef(false)
+
+  useEffect(() => {
+    if (!showLoading && threeLoaded && !avatarDismissedRef.current) {
+      setShowAvatar(true)
+    }
+  }, [showLoading, threeLoaded])
+
+  const handleAvatarDone = useCallback(() => {
+    avatarDismissedRef.current = true
+    setShowAvatar(false)
+  }, [])
+
   const aboutRef   = useRef()
   const monitorRef = useRef()
   const sideRef    = useRef()
@@ -1116,6 +1184,10 @@ useEffect(() => {
           📄 Get CV
         </a>
       </div>
+
+      {/* Avatar intro — mounts once scene is settled, unmounts permanently after one play */}
+      {showAvatar && <AvatarOverlay onDone={handleAvatarDone} />}
+
       {/* Custom Cursor */}
       <div ref={cursorRef} className="custom-cursor">
         <div className="custom-cursor-dot" />

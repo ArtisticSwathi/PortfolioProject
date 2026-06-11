@@ -177,3 +177,94 @@ body:has(.phone-card-container:hover) .custom-cursor {
     opacity: 0;
   }
 }
+
+/* ─── Avatar Overlay ───────────────────────────────────────────────────────────
+   Fixed to the browser viewport, bottom-centre.
+   The button lives INSIDE this wrapper and uses position:absolute to
+   stay anchored near the avatar on every screen size.
+────────────────────────────────────────────────────────────────── */
+.avatar-overlay {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  line-height: 0;      /* kill phantom inline gap below the video */
+  /* NO pointer-events:none here — the Skip Voice button inside must be clickable */
+  animation: avatarFadeIn 0.6s ease both;
+}
+
+.avatar-img,
+video.avatar-img {
+  display: block;      /* removes default inline baseline gap */
+  height: 320px;
+  width: clamp(320px, 42vw, 620px);
+  max-height: 85vh;
+  object-fit: contain;
+  object-position: bottom;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Fade-in: only animate opacity so translateX(-50%) centering is never disturbed */
+@keyframes avatarFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── Skip Voice Button ───────────────────────────────────────────────────────────
+   Absolutely positioned INSIDE .avatar-overlay so it is always anchored
+   near the avatar. Sits just above the video, centred on the same axis.
+   .avatar-overlay is position:fixed + has a transform, which makes it a
+   containing block — so absolute children position relative to it. ✔️
+────────────────────────────────────────────────────────────────── */
+.skip-audio-btn {
+  position: absolute;
+  bottom: 40%;          /* sits directly above the video */
+  left: 20%;
+  transform: translateX(-50%);
+  margin-bottom: 12px;   /* small gap between button and top of avatar */
+  white-space: nowrap;
+  z-index: 51;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  background: rgba(20, 10, 40, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(187, 134, 252, 0.4);
+  border-radius: 50px;
+  color: #e9d5ff;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(124, 58, 237, 0.35);
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  animation: fadeSlideIn 0.4s ease both;
+}
+
+.skip-audio-btn:hover {
+  background: rgba(124, 58, 237, 0.6);
+  box-shadow: 0 6px 28px rgba(124, 58, 237, 0.55);
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.skip-audio-btn:active {
+  transform: translateX(-50%) translateY(0);
+}
+
+.skip-audio-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.skip-audio-label {
+  letter-spacing: 0.01em;
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
