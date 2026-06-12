@@ -1164,7 +1164,7 @@ useEffect(() => {
           {isDarkMode ? '☀ Light mode' : '☾ Dark mode'}
         </button>
         <a 
-          href="/model/FullStack-resume.pdf" 
+          href="/model/Fullstack-resume.pdf" 
           target="_blank"
           rel="noopener noreferrer"
           style={{
