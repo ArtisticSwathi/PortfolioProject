@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect, useLayoutEffect, useCallback } from 'react'
+﻿import { useState, useRef, useEffect, useLayoutEffect, useCallback, Suspense } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { Environment } from '@react-three/drei'
+import { Environment, useProgress } from '@react-three/drei'
 import * as THREE from 'three'
 import gsap from 'gsap'
 import PortfolioDesk from './components/PortfolioDesk'
@@ -28,36 +28,50 @@ const PROJECTS = [
   github: 'https://github.com/ArtisticSwathi/Stylized-Isometric-Interior.git',
   extras: ['/images/stylized-room-2.jpg', '/images/stylized-room-3.jpg', '/images/stylized-room.jpg']
 },
+
+{
+  title: 'Samsung Galaxy Showcase',
+  desc: 'An interactive full-stack 3D product showcase featuring a Vite/React frontend, user authentication, and a custom API backend deployed on Render.',
+  image: '/images/Samsung-1.png', 
+  github: 'https://github.com/ArtisticSwathi/samsung-galaxy-showcase.git',
+  extras: [
+    '/images/Samsung-1.png', 
+    '/images/Samsung-2.png', 
+    '/images/Samsung-3.png',
+    '/images/Samsung-4.png',
+    '/images/Samsung-5.png',
+    '/images/Samsung-6.png'
+    
+  ]
+}
 ]
 
 // ─── LOADING SCREEN ───────────────────────────────────────────────────────────
 // Flow: loading bar fills → popup shows 3 sec → auto enters portfolio
-function LoadingScreen({ onEnter }) {
-  const [phase, setPhase]     = useState('tap')     // 'tap' | 'loading' | 'tip'
-  const [progress, setProgress] = useState(0)
+// Flow: tap screen (preloads 3D in bg) ──(click)──> instant enter if loaded, else show real loading bar until done
+function LoadingScreen({ onEnter, threeLoaded, fadeOut }) {
+  const { progress } = useProgress()
+  const [phase, setPhase] = useState('tap') // 'tap' | 'loading'
 
-const handleTap = () => {
-  // Only request fullscreen on mobile — desktop doesn't need it
-  if (isMobileDevice && document.documentElement.requestFullscreen) {
-    document.documentElement.requestFullscreen().catch(() => {})
+  const handleTap = () => {
+    // Only request fullscreen on mobile — desktop doesn't need it
+    if (isMobileDevice && document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {})
+    }
+    if (threeLoaded) {
+      onEnter()
+    } else {
+      setPhase('loading')
+    }
   }
-  setPhase('loading')
-}
+
   useEffect(() => {
-    if (phase !== 'loading') return
-    const interval = setInterval(() => {
-      setProgress(p => {
-        if (p >= 100) {
-          clearInterval(interval)
-          setPhase('tip')
-          setTimeout(() => onEnter(), 2000)  // tip shows 2 sec then enters
-          return 100
-        }
-        return p + 2
-      })
-    }, 35)
-    return () => clearInterval(interval)
-  }, [phase])
+    if (phase === 'loading' && threeLoaded) {
+      onEnter()
+    }
+  }, [phase, threeLoaded, onEnter])
+
+  const displayProgress = threeLoaded ? 100 : Math.min(99, Math.round(progress || 0))
 
   const bg = {
     position: 'fixed', top: 0, left: 0,
@@ -66,7 +80,11 @@ const handleTap = () => {
     display: 'flex', flexDirection: 'column',
     alignItems: 'center', justifyContent: 'center',
     fontFamily: '"Inter", sans-serif',
-    zIndex: 1000, cursor: phase === 'tap' ? 'pointer' : 'default',
+    zIndex: 1000, 
+    cursor: phase === 'tap' && !fadeOut ? 'pointer' : 'default',
+    opacity: fadeOut ? 0 : 1,
+    transition: 'opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1)',
+    pointerEvents: fadeOut ? 'none' : 'auto',
   }
 
   // ── TAP TO START ──
@@ -102,7 +120,7 @@ const handleTap = () => {
   )
 
   // ── LOADING ──
-  if (phase === 'loading') return (
+  return (
     <div style={bg}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px' }}>
         <div style={{ position: 'relative', width: '80px', height: '80px' }}>
@@ -119,46 +137,15 @@ const handleTap = () => {
         </div>
         <div style={{ width: '200px' }}>
           <div style={{ width: '100%', height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px', overflow: 'hidden' }}>
-            <div style={{ height: '100%', background: 'linear-gradient(90deg, #7c3aed, #bb86fc)', borderRadius: '2px', width: `${progress}%`, transition: 'width 0.06s ease' }} />
+            <div style={{ height: '100%', background: 'linear-gradient(90deg, #7c3aed, #bb86fc)', borderRadius: '2px', width: `${displayProgress}%`, transition: 'width 0.06s ease' }} />
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px' }}>
             <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Loading 3D scene...</span>
-            <span style={{ fontSize: '10px', color: '#bb86fc', fontWeight: '700' }}>{progress}%</span>
+            <span style={{ fontSize: '10px', color: '#bb86fc', fontWeight: '700' }}>{displayProgress}%</span>
           </div>
         </div>
       </div>
       <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-    </div>
-  )
-
-  // ── TIP (2 seconds, plain text only, no card) ──
-  return (
-    <div style={bg}>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px', textAlign: 'center' }}>
-        <div style={{ position: 'relative', width: '80px', height: '80px' }}>
-          <div style={{ position: 'absolute', inset: 0, border: '2px solid rgba(187,134,252,0.15)', borderRadius: '50%' }} />
-          <div style={{ position: 'absolute', inset: '6px', border: '2px solid rgba(187,134,252,0.25)', borderRadius: '50%', animation: 'spin 3s linear infinite' }} />
-          <div style={{ position: 'absolute', inset: '14px', border: '2px solid rgba(187,134,252,0.4)', borderRadius: '50%', animation: 'spin 2s linear infinite reverse' }} />
-          <div style={{ position: 'absolute', inset: '22px', background: 'linear-gradient(135deg, #7c3aed, #bb86fc)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🖥️</div>
-        </div>
-        <div>
-          <h1 style={{ fontSize: '20px', fontWeight: '900', color: '#fff', margin: '0 0 4px' }}>
-            Swathi's <span style={{ color: '#bb86fc' }}>3D Portfolio</span>
-          </h1>
-          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', margin: 0 }}>Fullstack Dev · 3D Artist</p>
-        </div>
-        {/* Plain text only — no card */}
-        <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.55)', margin: 0, fontWeight: '500', animation: 'fadeIn 0.4s ease' }}>
-          💻 For better experience, use a laptop
-        </p>
-        <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.35)', margin: 0, fontWeight: '400' }}>
-          📱 Keep in landscape mode on mobile
-        </p>
-      </div>
-      <style>{`
-        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-      `}</style>
     </div>
   )
 }
@@ -708,6 +695,7 @@ export default function App() {
   const [isDarkMode, setIsDarkMode]   = useState(false)
   const [isPortrait, setIsPortrait]   = useState(() => window.innerWidth < window.innerHeight)
   const [showLoading, setShowLoading] = useState(true)
+  const [loadingFadeOut, setLoadingFadeOut] = useState(false)
   const [transitioning, setTransitioning] = useState(false) 
   const [needsFs, setNeedsFs] = useState(false)
   const [showButtons, setShowButtons] = useState(true)
@@ -721,6 +709,13 @@ export default function App() {
 
   const handleThreeLoaded = useCallback(() => {
     setThreeLoaded(true)
+  }, [])
+
+  const handleEnter = useCallback(() => {
+    setLoadingFadeOut(true)
+    setTimeout(() => {
+      setShowLoading(false)
+    }, 600)
   }, [])
 
   const [dotsReady, setDotsReady] = useState(false)
@@ -742,10 +737,10 @@ export default function App() {
   const avatarDismissedRef          = useRef(false)
 
   useEffect(() => {
-    if (!showLoading && threeLoaded && !avatarDismissedRef.current) {
+    if (loadingFadeOut && threeLoaded && !avatarDismissedRef.current) {
       setShowAvatar(true)
     }
-  }, [showLoading, threeLoaded])
+  }, [loadingFadeOut, threeLoaded])
 
   const handleAvatarDone = useCallback(() => {
     avatarDismissedRef.current = true
@@ -1068,7 +1063,6 @@ useEffect(() => {
     document.removeEventListener('fullscreenchange', update)
   }
 }, [])
-  if (showLoading) return <LoadingScreen onEnter={() => setShowLoading(false)} />
   if (isPortrait)  return <RotateScreen />
 
   return (
@@ -1078,6 +1072,13 @@ useEffect(() => {
       overflow: 'hidden',
       background: isDarkMode ? '#050505' : '#c2b2a0',
     }}>
+      {showLoading && (
+        <LoadingScreen 
+          threeLoaded={threeLoaded} 
+          fadeOut={loadingFadeOut} 
+          onEnter={handleEnter} 
+        />
+      )}
 
 {needsFs && (
   <div
@@ -1114,27 +1115,29 @@ useEffect(() => {
           }}
           onClick={handleCanvasClick}
         >
-          <CameraCapture cameraRef={cameraRef} cameraInitializedRef={cameraInitializedRef} />
-          <ambientLight intensity={isDarkMode ? 0.05 : 0.5} />
-          <directionalLight position={[-3, 4, 3]} intensity={isDarkMode ? 0.1 : 1.2} />
-          <Environment preset={isDarkMode ? 'night' : 'apartment'} />
-          <PortfolioDesk 
-            isDarkMode={isDarkMode} 
-            aboutRef={aboutRef} 
-            monitorRef={monitorRef} 
-            sideRef={sideRef} 
-            phoneRef={phoneRef}
-            isZoomed={isZoomed}
-            isZoomedRef={isZoomedRef}
-            onObjectClick={handleObjectClick}
-            setHoveredObject={setHoveredObject}
-            hoveredObject={hoveredObject}
-            currentView={currentView}
-            cameraTimelineRef={cameraTimelineRef}
-            onReturnToDesk={handleReturnToDesk}
-            shouldRenderHotspots={shouldRenderHotspots}
-            onLoaded={handleThreeLoaded}
-          />
+          <Suspense fallback={null}>
+            <CameraCapture cameraRef={cameraRef} cameraInitializedRef={cameraInitializedRef} />
+            <ambientLight intensity={isDarkMode ? 0.05 : 0.5} />
+            <directionalLight position={[-3, 4, 3]} intensity={isDarkMode ? 0.1 : 1.2} />
+            <Environment preset={isDarkMode ? 'night' : 'apartment'} />
+            <PortfolioDesk 
+              isDarkMode={isDarkMode} 
+              aboutRef={aboutRef} 
+              monitorRef={monitorRef} 
+              sideRef={sideRef} 
+              phoneRef={phoneRef}
+              isZoomed={isZoomed}
+              isZoomedRef={isZoomedRef}
+              onObjectClick={handleObjectClick}
+              setHoveredObject={setHoveredObject}
+              hoveredObject={hoveredObject}
+              currentView={currentView}
+              cameraTimelineRef={cameraTimelineRef}
+              onReturnToDesk={handleReturnToDesk}
+              shouldRenderHotspots={shouldRenderHotspots}
+              onLoaded={handleThreeLoaded}
+            />
+          </Suspense>
         </Canvas>
 
         <AboutCard      isDarkMode={isDarkMode} aboutRef={aboutRef} onClose={handleReturnToDesk} />
@@ -1189,11 +1192,13 @@ useEffect(() => {
       {showAvatar && <AvatarOverlay onDone={handleAvatarDone} />}
 
       {/* Custom Cursor */}
-      <div ref={cursorRef} className="custom-cursor">
-        <div className="custom-cursor-dot" />
-        <div className="custom-cursor-ring" />
-        <div className="custom-cursor-ring-2" />
-      </div>
+      {!showLoading && (
+        <div ref={cursorRef} className="custom-cursor">
+          <div className="custom-cursor-dot" />
+          <div className="custom-cursor-ring" />
+          <div className="custom-cursor-ring-2" />
+        </div>
+      )}
     </div>
   )
 }
