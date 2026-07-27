@@ -500,11 +500,12 @@ function SideCard({ isDarkMode, sideRef, projectIndex }) {
 }
 
 // ─── MONITOR OVERLAY ──────────────────────────────────────────────────────────
-function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose }) {
+function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose, styles }) {
   const [index, setIndex] = useState(0)
   const [fade, setFade]   = useState(true)
   const accent  = isDarkMode ? '#bb86fc' : '#7c3aed'
   const project = PROJECTS[index]
+  const monitorStyle = styles?.monitor || {}
 
   const go = (dir) => {
     setFade(false)
@@ -515,11 +516,17 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose }) {
     <>
       <SideCard isDarkMode={isDarkMode} sideRef={sideRef} projectIndex={index} />
       <div ref={monitorRef} className="monitor-overlay-container" style={{
-        position: 'absolute', top: '28%', left: '40.3%', width: '21%', height: '28%',
+        position: 'absolute',
+        top: monitorStyle.top || '28%',
+        left: monitorStyle.left || '40.3%',
+        width: monitorStyle.width || '21%',
+        height: monitorStyle.height || '28%',
         fontFamily: '"Inter", sans-serif',
-        background: isDarkMode ? '#0a0a0f' : '#f0ebff',
+        background: 'transparent',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
         opacity: 0, pointerEvents: 'none', zIndex: 10,
+        boxSizing: 'border-box',
+        borderRadius: '8px',
       }}>
         {/* Close Button */}
         <button onClick={onClose} style={{
@@ -550,23 +557,23 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose }) {
         >
           ✕
         </button>
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', opacity: fade ? 1 : 0, transition: 'opacity 0.18s ease' }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', opacity: fade ? 1 : 0, transition: 'opacity 0.18s ease', boxSizing: 'border-box' }}>
           <img src={project.image} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%', background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', bottom: '30px', left: '10px', right: '10px' }}>
-            <div style={{ fontSize: '12px', fontWeight: '800', color: '#fff', marginBottom: '2px', lineHeight: 1.2 }}>{project.title}</div>
-            <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.75)', lineHeight: 1.4, fontWeight: '500' }}>{project.desc}</div>
+          <div style={{ position: 'absolute', bottom: 'clamp(18px, 3vw, 30px)', left: 'clamp(8px, 1.2vw, 12px)', right: 'clamp(8px, 1.2vw, 12px)' }}>
+            <div style={{ fontSize: 'clamp(10px, 1.1vw, 13px)', fontWeight: '800', color: '#fff', marginBottom: '2px', lineHeight: 1.2 }}>{project.title}</div>
+            <div style={{ fontSize: 'clamp(8px, 0.95vw, 11px)', color: 'rgba(255,255,255,0.75)', lineHeight: 1.4, fontWeight: '500' }}>{project.desc}</div>
           </div>
           <a href={project.github} target="_blank" rel="noopener noreferrer"
-            style={{ position: 'absolute', top: '7px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', padding: '3px 10px', borderRadius: '20px', fontSize: '8px', fontWeight: '700', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', cursor: 'pointer', transition: 'background 0.2s' }}
+            style={{ position: 'absolute', top: 'clamp(6px, 1vw, 10px)', left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', padding: 'clamp(3px, 0.7vw, 5px) clamp(8px, 1vw, 10px)', borderRadius: '20px', fontSize: 'clamp(8px, 0.9vw, 10px)', fontWeight: '700', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', cursor: 'pointer', transition: 'background 0.2s' }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(124,58,237,0.8)'}
             onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.65)'}
           >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
             View on GitHub
           </a>
-          <button onClick={() => go(-1)} style={{ position: 'absolute', bottom: '6px', left: '8px', background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', padding: '3px 9px', borderRadius: '6px', fontSize: '10px', fontWeight: '700', cursor: 'pointer', fontFamily: '"Inter", sans-serif' }}>← Prev</button>
-          <button onClick={() => go(1)}  style={{ position: 'absolute', bottom: '6px', right: '8px', background: accent, border: 'none', color: '#fff', padding: '3px 9px', borderRadius: '6px', fontSize: '10px', fontWeight: '700', cursor: 'pointer', fontFamily: '"Inter", sans-serif' }}>Next →</button>
+          <button onClick={() => go(-1)} style={{ position: 'absolute', bottom: 'clamp(6px, 1vw, 8px)', left: 'clamp(6px, 1vw, 8px)', background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', padding: 'clamp(3px, 0.7vw, 5px) clamp(8px, 1vw, 9px)', borderRadius: '6px', fontSize: 'clamp(8px, 0.9vw, 10px)', fontWeight: '700', cursor: 'pointer', fontFamily: '"Inter", sans-serif' }}>← Prev</button>
+          <button onClick={() => go(1)}  style={{ position: 'absolute', bottom: 'clamp(6px, 1vw, 8px)', right: 'clamp(6px, 1vw, 8px)', background: accent, border: 'none', color: '#fff', padding: 'clamp(3px, 0.7vw, 5px) clamp(8px, 1vw, 9px)', borderRadius: '6px', fontSize: 'clamp(8px, 0.9vw, 10px)', fontWeight: '700', cursor: 'pointer', fontFamily: '"Inter", sans-serif' }}>Next →</button>
         </div>
       </div>
     </>
@@ -574,21 +581,31 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose }) {
 }
 
 // ─── PHONE CONTACT CARD ───────────────────────────────────────────────────────
-function PhoneCard({ isDarkMode, phoneRef, onClose }) {
+function PhoneCard({ isDarkMode, phoneRef, onClose, styles }) {
   const links = [
     { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="#1a73e8"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>, label: 'Email', value: 'swathi.s.3dartist@gmail.com', href: 'mailto:swathi.s.3dartist@gmail.com' },
     { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="#0077b5"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>, label: 'LinkedIn', value: 'linkedin.com/swathi-sudhakar', href: 'https://www.linkedin.com/swathi-sudhakar' },
     { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="#333"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>, label: 'GitHub', value: 'github.com/ArtisticSwathi', href: 'https://github.com/ArtisticSwathi' },
     { icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.033.055a19.875 19.875 0 0 0 5.993 3.03.078.078 0 0 0 .084-.026c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084-.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>, label: 'Discord', value: 'swathi_07378', href: 'https://discord.com/users/swathi_07378' },
   ]
+  const phoneStyle = styles?.phone || {}
+
   return (
     <div ref={phoneRef} className="phone-card-container" style={{
-      position: 'absolute', top: '36%', left: '43.4%', width: '12.5%', height: '54.5%',
+      position: 'absolute',
+      top: phoneStyle.top || '36%',
+      left: phoneStyle.left || '43.4%',
+      width: phoneStyle.width || '12.5%',
+      height: phoneStyle.height || '54.5%',
       fontFamily: '"Inter", sans-serif', opacity: 0, pointerEvents: 'none', zIndex: 10,
-      overflow: 'hidden', background: 'transparent',
+      overflow: 'hidden',
       transform: 'perspective(300px) rotateY(-2.3deg) rotateZ(2.6deg)',
+      boxSizing: 'border-box',
+      padding: '2px',
+      borderRadius: '24px',
+      background: 'linear-gradient(135deg, #1f2937, #111827)',
     }}>
-      <div style={{ width: '100%', height: '100%', background: '#f5f5f5', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
+      <div style={{ width: '100%', height: '100%', background: '#f5f5f5', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', boxSizing: 'border-box' }}>
         {/* Close Button */}
         <button onClick={onClose} style={{
           position: 'absolute',
@@ -623,7 +640,7 @@ function PhoneCard({ isDarkMode, phoneRef, onClose }) {
           <div style={{ fontSize: '11px', fontWeight: '800', color: '#fff', marginTop: '1px' }}>Swathi S</div>
           <div style={{ fontSize: '7px', color: 'rgba(255,255,255,0.75)', marginTop: '1px', fontWeight: '500' }}>Fullstack Dev · 3D Artist</div>
         </div>
-        <div style={{ padding: '4px 6px', display: 'flex', flexDirection: 'column', gap: '4px', flex: 1, overflow: 'hidden', justifyContent: 'flex-start', marginTop: '6px' }}>
+        <div style={{ padding: 'clamp(5px, 0.8vw, 8px)', display: 'flex', flexDirection: 'column', gap: 'clamp(4px, 0.7vw, 6px)', flex: 1, overflow: 'hidden', justifyContent: 'flex-start', marginTop: '6px' }}>
           {links.map((link, i) => {
             const isTel = link.href.startsWith('tel')
             const isMail = link.href.startsWith('mailto')
@@ -639,18 +656,18 @@ function PhoneCard({ isDarkMode, phoneRef, onClose }) {
                     }, 1000)
                   }
                 }}
-                style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 6px', background: '#fff', borderRadius: '6px', textDecoration: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer' }}
+                style={{ display: 'flex', alignItems: 'center', gap: 'clamp(4px, 0.7vw, 6px)', padding: 'clamp(4px, 0.8vw, 6px) clamp(6px, 1vw, 8px)', background: '#fff', borderRadius: '6px', textDecoration: 'none', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', cursor: 'pointer', minHeight: 0 }}
               >
                 <div style={{ flexShrink: 0 }}>{link.icon}</div>
                 <div style={{ overflow: 'hidden', minWidth: 0 }}>
-                  <div style={{ fontSize: '6px', fontWeight: '700', color: '#888', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{link.label}</div>
-                  <div style={{ fontSize: '7px', fontWeight: '600', color: '#111', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link.value}</div>
+                  <div style={{ fontSize: 'clamp(6px, 0.8vw, 8px)', fontWeight: '700', color: '#888', letterSpacing: '0.05em', textTransform: 'uppercase' }}>{link.label}</div>
+                  <div style={{ fontSize: 'clamp(7px, 0.9vw, 9px)', fontWeight: '600', color: '#111', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{link.value}</div>
                 </div>
               </a>
             )
           })}
         </div>
-        <div style={{ padding: '5px 8px 8px', textAlign: 'center', fontSize: '6px', color: '#999', fontWeight: '500', flexShrink: 0 }}>
+        <div style={{ padding: 'clamp(5px, 0.8vw, 8px)', textAlign: 'center', fontSize: 'clamp(6px, 0.8vw, 8px)', color: '#999', fontWeight: '500', flexShrink: 0 }}>
           Open to internships · Available for work abroad
         </div>
       </div>
@@ -706,6 +723,30 @@ export default function App() {
   const [hoveredObject, setHoveredObject] = useState(null)
   const [showHotspots, setShowHotspots] = useState(false)
   const [threeLoaded, setThreeLoaded] = useState(false)
+  const [projectedStyles, setProjectedStyles] = useState({ monitor: {}, phone: {}, side: {} })
+
+  const handleProjected = useCallback(({ monitor, phone, side }) => {
+    setProjectedStyles({
+      monitor: {
+        left:   `${monitor.left}px`,
+        top:    `${monitor.top}px`,
+        width:  `${monitor.width}px`,
+        height: `${monitor.height}px`,
+      },
+      phone: {
+        left:   `${phone.left}px`,
+        top:    `${phone.top}px`,
+        width:  `${phone.width}px`,
+        height: `${phone.height}px`,
+      },
+      side: {
+        left:   `${side.left}px`,
+        top:    `${side.top}px`,
+        width:  `${side.width}px`,
+        height: `${side.height}px`,
+      },
+    })
+  }, [])
 
   const handleThreeLoaded = useCallback(() => {
     setThreeLoaded(true)
@@ -1136,13 +1177,14 @@ useEffect(() => {
               onReturnToDesk={handleReturnToDesk}
               shouldRenderHotspots={shouldRenderHotspots}
               onLoaded={handleThreeLoaded}
+              onProjected={handleProjected}
             />
           </Suspense>
         </Canvas>
 
         <AboutCard      isDarkMode={isDarkMode} aboutRef={aboutRef} onClose={handleReturnToDesk} />
-        <MonitorOverlay isDarkMode={isDarkMode} monitorRef={monitorRef} sideRef={sideRef} onClose={handleReturnToDesk} />
-        <PhoneCard      isDarkMode={isDarkMode} phoneRef={phoneRef} onClose={handleReturnToDesk} />
+        <MonitorOverlay isDarkMode={isDarkMode} monitorRef={monitorRef} sideRef={sideRef} onClose={handleReturnToDesk} styles={projectedStyles} />
+        <PhoneCard      isDarkMode={isDarkMode} phoneRef={phoneRef} onClose={handleReturnToDesk} styles={projectedStyles} />
 
         {/* Hotspots are now rendered directly inside PortfolioDesk as 3D Drei Html components */}
 

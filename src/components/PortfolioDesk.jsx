@@ -1,8 +1,123 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useGLTF, Html } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import gsap from 'gsap'
+
+// ─── SCREEN PROJECTOR ─────────────────────────────────────────────────────────
+// Uses Three.js camera projection to compute exact pixel-space bounding boxes
+// for the HTML overlay cards. Runs every frame via useFrame to stay perfectly
+// in sync with GSAP-driven camera animations.
+//
+// Corner coordinates are mathematically derived from the actual GLB mesh data:
+//   • monitor-screen (Node 17): mesh AABB + node 180°Y + root 180°Y = net 0° → exact world corners
+//   • mobile-screen  (Node 18): mesh AABB + complex quaternion + root 180°Y → exact world corners
+function ScreenProjector({ onProjected }) {
+  const { camera, size } = useThree()
+  const prevRef = useRef({})
+  const tmp     = useRef(new THREE.Vector3())
+
+  // ── Monitor screen: world-space corners (flat screen, camera nearly parallel) ─
+  // With net-zero rotation (node 180°Y × root 180°Y = 360°), world corners are
+  // simply: world_node_center ± mesh_half_extents
+  const monC = useRef([
+    new THREE.Vector3(-0.0262,  0.6666, -1.6832),  // TL
+    new THREE.Vector3( 0.2978,  0.6666, -1.6832),  // TR
+    new THREE.Vector3(-0.0262,  0.4706, -1.6832),  // BL
+    new THREE.Vector3( 0.2978,  0.4706, -1.6832),  // BR
+  ])
+
+  // ── Phone screen: world-space corners after quaternion + root rotation ────────
+  // The phone screen is tilted (not flat to the camera), so its 4 projected
+  // corners form a parallelogram in screen space. Labeled as seen from the
+  // phone zoom camera view:
+  //   TL = (0.4951, 0.5286, -1.4816)   TR = (0.5152, 0.5286, -1.4229)
+  //   BL = (0.4629, 0.4146, -1.4706)   BR = (0.4830, 0.4146, -1.4119)
+  const phoneC = useRef([
+    new THREE.Vector3(0.4951, 0.5286, -1.4816),  // TL
+    new THREE.Vector3(0.5152, 0.5286, -1.4229),  // TR
+    new THREE.Vector3(0.4629, 0.4146, -1.4706),  // BL
+    new THREE.Vector3(0.4830, 0.4146, -1.4119),  // BR
+  ])
+
+  // ── Side card: positioned left of monitor, same screen-height ────────────────
+  const sideC = useRef([
+    new THREE.Vector3(-0.490,  0.6666, -1.6832),
+    new THREE.Vector3(-0.0262, 0.6666, -1.6832),
+    new THREE.Vector3(-0.490,  0.4706, -1.6832),
+    new THREE.Vector3(-0.0262, 0.4706, -1.6832),
+  ])
+
+  useFrame(() => {
+    const W = size.width
+    const H = size.height
+
+    // Project a single world-space Vector3 → CSS pixel {x, y}
+    const prj = (v) => {
+      const c = tmp.current.copy(v).project(camera)
+      return { x: (c.x * 0.5 + 0.5) * W, y: (-c.y * 0.5 + 0.5) * H }
+    }
+
+    // Bounding box of projected corner set (good for flat, camera-aligned screens)
+    const bbox = (corners) => {
+      const pts = corners.map(prj)
+      const xs  = pts.map(p => p.x)
+      const ys  = pts.map(p => p.y)
+      return {
+        left:   Math.min(...xs),
+        top:    Math.min(...ys),
+        width:  Math.max(...xs) - Math.min(...xs),
+        height: Math.max(...ys) - Math.min(...ys),
+      }
+    }
+
+    // Monitor: flat + nearly perpendicular → bbox is accurate
+    const mBounds = bbox(monC.current)
+
+    // Phone: tilted screen → parallelogram in screen space.
+    // Using EDGE MIDPOINTS to get the inscribed rectangle avoids the
+    // ~14 px bbox over-inflation that caused the right-side overflow.
+    const [pTL, pTR, pBL, pBR] = phoneC.current.map(prj)
+    const pBounds = {
+      left:   (pTL.x + pBL.x) * 0.5,
+      top:    (pTL.y + pTR.y) * 0.5,
+      width:  (pTR.x + pBR.x) * 0.5 - (pTL.x + pBL.x) * 0.5,
+      height: (pBL.y + pBR.y) * 0.5 - (pTL.y + pTR.y) * 0.5,
+    }
+
+    // Side card: flat → bbox is accurate
+    const sBounds = bbox(sideC.current)
+
+    // Throttle React state updates — only push when position changes > 2 CSS px
+    const prev = prevRef.current
+    const changed =
+      Math.abs((prev.mL ?? -1) - mBounds.left)   > 2.0 ||
+      Math.abs((prev.mT ?? -1) - mBounds.top)    > 2.0 ||
+      Math.abs((prev.mW ?? -1) - mBounds.width)  > 2.0 ||
+      Math.abs((prev.mH ?? -1) - mBounds.height) > 2.0 ||
+      Math.abs((prev.pL ?? -1) - pBounds.left)   > 2.0 ||
+      Math.abs((prev.pT ?? -1) - pBounds.top)    > 2.0 ||
+      Math.abs((prev.pW ?? -1) - pBounds.width)  > 2.0 ||
+      Math.abs((prev.pH ?? -1) - pBounds.height) > 2.0
+
+    if (changed) {
+      prevRef.current = {
+        mL: mBounds.left, mT: mBounds.top, mW: mBounds.width, mH: mBounds.height,
+        pL: pBounds.left, pT: pBounds.top, pW: pBounds.width, pH: pBounds.height,
+      }
+      onProjected({
+        monitor: mBounds,
+        phone: {
+          ...pBounds,
+          polygon: [pTL, pTR, pBR, pBL],
+        },
+        side: sBounds,
+      })
+    }
+  })
+
+  return null
+}
 
 // ─── CURSOR PARALLAX ──────────────────────────────────────────────────────────
 // Tracks mouse position and applies subtle parallax camera offset
@@ -69,11 +184,11 @@ export default function PortfolioDesk({
   cameraTimelineRef,
   onReturnToDesk,
   shouldRenderHotspots,
-  onLoaded
+  onLoaded,
+  onProjected,
 }) {
   const { scene: glbScene } = useGLTF('./model/Baking-donee.glb')
   const { camera } = useThree()
-
 
   useEffect(() => {
     if (!glbScene) return
@@ -135,7 +250,6 @@ export default function PortfolioDesk({
     }
   }
 
-
   return (
     <group>
       <primitive 
@@ -145,6 +259,9 @@ export default function PortfolioDesk({
         onPointerOut={handlePointerOut}
         onPointerDown={handleClick}
       />
+      {onProjected && (
+        <ScreenProjector onProjected={onProjected} />
+      )}
       
       {shouldRenderHotspots && (
         <group rotation={[0, Math.PI, 0]}>
