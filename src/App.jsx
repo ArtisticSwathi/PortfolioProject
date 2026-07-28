@@ -526,7 +526,9 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose, styles }) {
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
         opacity: 0, pointerEvents: 'none', zIndex: 10,
         boxSizing: 'border-box',
-        borderRadius: '8px',
+        border: 'none',
+        borderRadius: 0,
+        padding: 0,
       }}>
         {/* Close Button */}
         <button onClick={onClose} style={{
@@ -601,9 +603,10 @@ function PhoneCard({ isDarkMode, phoneRef, onClose, styles }) {
       overflow: 'hidden',
       transform: 'perspective(300px) rotateY(-2.3deg) rotateZ(2.6deg)',
       boxSizing: 'border-box',
-      padding: '2px',
-      borderRadius: '24px',
-      background: 'linear-gradient(135deg, #1f2937, #111827)',
+      padding: 0,
+      borderRadius: 0,
+      background: 'transparent',
+      border: 'none',
     }}>
       <div style={{ width: '100%', height: '100%', background: '#f5f5f5', display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', boxSizing: 'border-box' }}>
         {/* Close Button */}
@@ -726,18 +729,32 @@ export default function App() {
   const [projectedStyles, setProjectedStyles] = useState({ monitor: {}, phone: {}, side: {} })
 
   const handleProjected = useCallback(({ monitor, phone, side }) => {
+    const expand = 1.5
+    const monitorBox = {
+      left:   monitor.left - expand,
+      top:    monitor.top - expand,
+      width:  monitor.width + expand * 2,
+      height: monitor.height + expand * 2,
+    }
+    const phoneBox = {
+      left:   phone.left - expand,
+      top:    phone.top - expand,
+      width:  phone.width + expand * 2,
+      height: phone.height + expand * 2,
+    }
+
     setProjectedStyles({
       monitor: {
-        left:   `${monitor.left}px`,
-        top:    `${monitor.top}px`,
-        width:  `${monitor.width}px`,
-        height: `${monitor.height}px`,
+        left:   `${monitorBox.left}px`,
+        top:    `${monitorBox.top}px`,
+        width:  `${monitorBox.width}px`,
+        height: `${monitorBox.height}px`,
       },
       phone: {
-        left:   `${phone.left}px`,
-        top:    `${phone.top}px`,
-        width:  `${phone.width}px`,
-        height: `${phone.height}px`,
+        left:   `${phoneBox.left}px`,
+        top:    `${phoneBox.top}px`,
+        width:  `${phoneBox.width}px`,
+        height: `${phoneBox.height}px`,
       },
       side: {
         left:   `${side.left}px`,
