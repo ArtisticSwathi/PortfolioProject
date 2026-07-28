@@ -729,32 +729,31 @@ export default function App() {
   const [projectedStyles, setProjectedStyles] = useState({ monitor: {}, phone: {}, side: {} })
 
   const handleProjected = useCallback(({ monitor, phone, side }) => {
-    const expand = 1.5
     const monitorBox = {
-      left:   monitor.left - expand,
-      top:    monitor.top - expand,
-      width:  monitor.width + expand * 2,
-      height: monitor.height + expand * 2,
+      left:   `${(monitor.left / INIT_W) * 100}%`,
+      top:    `${(monitor.top / INIT_H) * 100}%`,
+      width:  `${(monitor.width / INIT_W) * 100}%`,
+      height: `${(monitor.height / INIT_H) * 100}%`,
     }
     const phoneBox = {
-      left:   phone.left - expand,
-      top:    phone.top - expand,
-      width:  phone.width + expand * 2,
-      height: phone.height + expand * 2,
+      left:   `${(phone.left / INIT_W) * 100}%`,
+      top:    `${(phone.top / INIT_H) * 100}%`,
+      width:  `${(phone.width / INIT_W) * 100}%`,
+      height: `${(phone.height / INIT_H) * 100}%`,
     }
 
     setProjectedStyles({
       monitor: {
-        left:   `${monitorBox.left}px`,
-        top:    `${monitorBox.top}px`,
-        width:  `${monitorBox.width}px`,
-        height: `${monitorBox.height}px`,
+        left:   monitorBox.left,
+        top:    monitorBox.top,
+        width:  monitorBox.width,
+        height: monitorBox.height,
       },
       phone: {
-        left:   `${phoneBox.left}px`,
-        top:    `${phoneBox.top}px`,
-        width:  `${phoneBox.width}px`,
-        height: `${phoneBox.height}px`,
+        left:   phoneBox.left,
+        top:    phoneBox.top,
+        width:  phoneBox.width,
+        height: phoneBox.height,
       },
       side: {
         left:   `${side.left}px`,
@@ -1064,28 +1063,20 @@ useEffect(() => {
   const update = () => {
     const portrait = window.innerWidth < window.innerHeight
     setIsPortrait(portrait)
-    if (!innerRef.current || portrait) return
-    const scale = Math.max(
-      window.innerWidth  / INIT_W,
-      window.innerHeight / INIT_H
-    )
-    innerRef.current.style.transform = `translate(-50%, -50%) scale(${scale})`
+    if (!cameraRef.current) return
 
     // Adjust camera FOV based on viewport aspect ratio to prevent horizontal cropping
-    if (cameraRef.current) {
-      const aspectCanvas = INIT_W / INIT_H
-      const aspectWindow = window.innerWidth / window.innerHeight
-      let fov = 32
-      if (aspectWindow < aspectCanvas) {
-        // Narrower screen: increase FOV to fit the scene horizontally
-        const baseFovRad = (32 * Math.PI) / 180
-        const horizontalFovRad = 2 * Math.atan(Math.tan(baseFovRad / 2) * aspectCanvas)
-        const newFovRad = 2 * Math.atan(Math.tan(horizontalFovRad / 2) / aspectWindow)
-        fov = (newFovRad * 180) / Math.PI
-      }
-      cameraRef.current.fov = fov
-      cameraRef.current.updateProjectionMatrix()
+    const aspectCanvas = INIT_W / INIT_H
+    const aspectWindow = window.innerWidth / window.innerHeight
+    let fov = 32
+    if (aspectWindow < aspectCanvas) {
+      const baseFovRad = (32 * Math.PI) / 180
+      const horizontalFovRad = 2 * Math.atan(Math.tan(baseFovRad / 2) * aspectCanvas)
+      const newFovRad = 2 * Math.atan(Math.tan(horizontalFovRad / 2) / aspectWindow)
+      fov = (newFovRad * 180) / Math.PI
     }
+    cameraRef.current.fov = fov
+    cameraRef.current.updateProjectionMatrix()
   }
   update()
   window.addEventListener('resize', update)

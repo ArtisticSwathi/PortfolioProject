@@ -21,10 +21,10 @@ function ScreenProjector({ onProjected }) {
   // With net-zero rotation (node 180°Y × root 180°Y = 360°), world corners are
   // simply: world_node_center ± mesh_half_extents
   const monC = useRef([
-    new THREE.Vector3(-0.0262,  0.6666, -1.6832),  // TL
-    new THREE.Vector3( 0.2978,  0.6666, -1.6832),  // TR
-    new THREE.Vector3(-0.0262,  0.4706, -1.6832),  // BL
-    new THREE.Vector3( 0.2978,  0.4706, -1.6832),  // BR
+    new THREE.Vector3(-0.0312,  0.6676, -1.6832),  // TL
+    new THREE.Vector3( 0.3028,  0.6676, -1.6832),  // TR
+    new THREE.Vector3(-0.0312,  0.4550, -1.6832),  // BL
+    new THREE.Vector3( 0.3028,  0.4550, -1.6832),  // BR
   ])
 
   // ── Phone screen: world-space corners after quaternion + root rotation ────────
@@ -42,10 +42,10 @@ function ScreenProjector({ onProjected }) {
 
   // ── Side card: positioned left of monitor, same screen-height ────────────────
   const sideC = useRef([
-    new THREE.Vector3(-0.490,  0.6666, -1.6832),
-    new THREE.Vector3(-0.0262, 0.6666, -1.6832),
-    new THREE.Vector3(-0.490,  0.4706, -1.6832),
-    new THREE.Vector3(-0.0262, 0.4706, -1.6832),
+    new THREE.Vector3(-0.490,  0.6676, -1.6832),
+    new THREE.Vector3(-0.0312, 0.6676, -1.6832),  // right edge matches monitor left
+    new THREE.Vector3(-0.490,  0.4550, -1.6832),
+    new THREE.Vector3(-0.0312, 0.4550, -1.6832),  // right edge matches monitor left
   ])
 
   useFrame(() => {
