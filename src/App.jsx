@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect, useLayoutEffect, useCallback, Suspense } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, Suspense } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, useProgress } from '@react-three/drei'
 import * as THREE from 'three'
@@ -449,7 +449,7 @@ const skillCategories = [
 }
 
 // ─── SIDE CARD ────────────────────────────────────────────────────────────────
-function SideCard({ isDarkMode, sideRef, projectIndex }) {
+function SideCard({ isDarkMode, sideRef, projectIndex, monitorLeftPct }) {
   const [activeImg, setActiveImg] = useState(0)
   const [imgFade, setImgFade]     = useState(true)
   const accent  = isDarkMode ? '#bb86fc' : '#7c3aed'
@@ -465,15 +465,50 @@ function SideCard({ isDarkMode, sideRef, projectIndex }) {
     return () => clearInterval(timer)
   }, [projectIndex, project.extras.length])
 
+  // ── Responsive positioning ──────────────────────────────────────────────────
+  // Goal: keep card at full 26% width. If the monitor shifts left on smaller
+  // screens, slide the card's LEFT anchor toward 0% to use the empty left space
+  // before shrinking the width. Only reduce width as a last resort.
+  //
+  //   maxRight = monitorLeft − 2.5% gap  (card right edge must stay left of this)
+  //   cardLeft = max(0%, min(12%, maxRight − 26%))  — slide left if needed
+  //   cardW    = min(26%, maxRight − cardLeft)       — shrink only if no room left
+  //
+  // On large screens (monitor ~40%): cardLeft≈12%, cardW=26% → original look ✓
+  // On small screens (monitor ~28%): cardLeft slides to ~0%, cardW stays ~26% ✓
+  const ORIG_LEFT   = 12
+  const CARD_W_PREF = 26
+  const CARD_H_PREF = 38
+  const GAP         = 2.5
+
+  let cardLeft, cardW, cardH, thumbH
+  if (monitorLeftPct > 0) {
+    const maxRight = monitorLeftPct - GAP
+    cardLeft = Math.max(0, Math.min(ORIG_LEFT, maxRight - CARD_W_PREF))
+    cardW    = Math.min(CARD_W_PREF, Math.max(8, maxRight - cardLeft))
+    cardH    = parseFloat((cardW / CARD_W_PREF * CARD_H_PREF).toFixed(2))
+    thumbH   = Math.round(cardW / CARD_W_PREF * 28)
+  } else {
+    cardLeft = ORIG_LEFT
+    cardW    = CARD_W_PREF
+    cardH    = CARD_H_PREF
+    thumbH   = 28
+  }
+
   return (
     <div ref={sideRef} className="side-card-container" style={{
-      position: 'absolute', top: '8%', left: '12%', width: '26%', height: '38%',
+      position: 'absolute',
+      top: '8%',
+      left:   `${cardLeft}%`,
+      width:  `${cardW}%`,
+      height: `${cardH}%`,
       fontFamily: '"Inter", sans-serif',
       background: isDarkMode ? 'rgba(15,10,25,0.97)' : 'rgba(255,255,255,0.97)',
       backdropFilter: 'blur(16px)', borderRadius: '12px',
       border: `1px solid ${isDarkMode ? 'rgba(187,134,252,0.2)' : 'rgba(124,58,237,0.15)'}`,
       boxShadow: '0 16px 40px rgba(0,0,0,0.4)', display: 'flex', flexDirection: 'column',
       overflow: 'hidden', opacity: 0, pointerEvents: 'none', zIndex: 10,
+      transition: 'left 0.15s ease, width 0.15s ease, height 0.15s ease',
     }}>
       <div style={{ padding: '6px 10px', background: isDarkMode ? 'rgba(124,58,237,0.15)' : 'rgba(124,58,237,0.08)', borderBottom: `1px solid ${isDarkMode ? 'rgba(187,134,252,0.15)' : 'rgba(124,58,237,0.12)'}`, flexShrink: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div style={{ fontSize: '9px', fontWeight: '700', color: isDarkMode ? '#e9d5ff' : '#3b0764' }}>{project.title}</div>
@@ -490,7 +525,7 @@ function SideCard({ isDarkMode, sideRef, projectIndex }) {
       <div style={{ display: 'flex', gap: '3px', padding: '5px', background: isDarkMode ? 'rgba(0,0,0,0.35)' : 'rgba(245,245,245,0.9)', flexShrink: 0 }}>
         {project.extras.map((img, i) => (
           <div key={i} onClick={() => { setImgFade(false); setTimeout(() => { setActiveImg(i); setImgFade(true) }, 200) }}
-            style={{ flex: 1, height: '28px', borderRadius: '4px', overflow: 'hidden', cursor: 'pointer', border: i === activeImg ? `2px solid ${accent}` : '2px solid transparent', transition: 'border 0.2s' }}>
+            style={{ flex: 1, height: `${thumbH}px`, borderRadius: '4px', overflow: 'hidden', cursor: 'pointer', border: i === activeImg ? `2px solid ${accent}` : '2px solid transparent', transition: 'border 0.2s' }}>
             <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           </div>
         ))}
@@ -514,7 +549,9 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose, styles }) {
 
   return (
     <>
-      <SideCard isDarkMode={isDarkMode} sideRef={sideRef} projectIndex={index} />
+      {/* Parse monitor's left% so SideCard can size itself to never overlap */}
+      <SideCard isDarkMode={isDarkMode} sideRef={sideRef} projectIndex={index}
+        monitorLeftPct={parseFloat(styles?.monitor?.left) || 0} />
       <div ref={monitorRef} className="monitor-overlay-container" style={{
         position: 'absolute',
         top: monitorStyle.top || '28%',
