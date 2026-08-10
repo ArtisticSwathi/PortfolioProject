@@ -210,19 +210,23 @@ export default function PortfolioDesk({
     }
   }, [glbScene, onLoaded])
 
-  const handlePointerOver = (e) => {
+  const getObjectName = (obj) => {
+    let curr = obj
+    while (curr) {
+      const name = curr.name ? curr.name.toLowerCase() : ''
+      if (name.includes('book')) return 'about'
+      if (name.includes('monitor')) return 'monitor'
+      if (name.includes('mobile') || name.includes('phone')) return 'phone'
+      curr = curr.parent
+    }
+    return null
+  }
+
+  const handlePointerMove = (e) => {
     if (isZoomedRef && isZoomedRef.current) return
     e.stopPropagation()
-    const name = e.object.name.toLowerCase()
-    if (name.includes('book')) {
-      setHoveredObject('about')
-    } else if (name.includes('monitor')) {
-      setHoveredObject('monitor')
-    } else if (name.includes('mobile') || name.includes('phone')) {
-      setHoveredObject('phone')
-    } else {
-      setHoveredObject(null)
-    }
+    const target = getObjectName(e.object)
+    setHoveredObject(target)
   }
 
   const handlePointerOut = (e) => {
@@ -240,13 +244,9 @@ export default function PortfolioDesk({
       e.nativeEvent.preventDefault()
     }
     
-    const name = e.object.name.toLowerCase()
-    if (name.includes('book')) {
-      onObjectClick('about')
-    } else if (name.includes('monitor')) {
-      onObjectClick('monitor')
-    } else if (name.includes('mobile') || name.includes('phone')) {
-      onObjectClick('phone')
+    const target = getObjectName(e.object)
+    if (target) {
+      onObjectClick(target)
     }
   }
 
@@ -255,12 +255,24 @@ export default function PortfolioDesk({
       <primitive 
         object={glbScene} 
         rotation={[0, Math.PI, 0]} 
-        onPointerOver={handlePointerOver}
+        onPointerMove={handlePointerMove}
+        onPointerOver={handlePointerMove}
         onPointerOut={handlePointerOut}
         onPointerDown={handleClick}
       />
       {onProjected && (
         <ScreenProjector onProjected={onProjected} />
+      )}
+
+      {/* 3D Red Spotting Glow Light when hovering over main objects */}
+      {!isZoomed && hoveredObject === 'about' && (
+        <pointLight position={[-0.37, 0.65, -1.45]} intensity={5.0} color="#ff007f" distance={2.0} />
+      )}
+      {!isZoomed && hoveredObject === 'monitor' && (
+        <pointLight position={[-0.14, 0.70, -1.60]} intensity={5.0} color="#ff007f" distance={2.0} />
+      )}
+      {!isZoomed && hoveredObject === 'phone' && (
+        <pointLight position={[0.48, 0.60, -1.40]} intensity={5.0} color="#ff007f" distance={2.0} />
       )}
       
       {shouldRenderHotspots && (

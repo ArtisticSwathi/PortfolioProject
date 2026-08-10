@@ -537,14 +537,22 @@ function SideCard({ isDarkMode, sideRef, projectIndex, monitorLeftPct }) {
 // ─── MONITOR OVERLAY ──────────────────────────────────────────────────────────
 function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose, styles }) {
   const [index, setIndex] = useState(0)
-  const [fade, setFade]   = useState(true)
+  const [prevImg, setPrevImg] = useState(PROJECTS[0].image)
+  const [imgFade, setImgFade] = useState(true)
   const accent  = isDarkMode ? '#bb86fc' : '#7c3aed'
   const project = PROJECTS[index]
   const monitorStyle = styles?.monitor || {}
 
   const go = (dir) => {
-    setFade(false)
-    setTimeout(() => { setIndex(i => (i + dir + PROJECTS.length) % PROJECTS.length); setFade(true) }, 180)
+    const nextIdx = (index + dir + PROJECTS.length) % PROJECTS.length
+    setPrevImg(PROJECTS[index].image)
+    setIndex(nextIdx)
+    setImgFade(false)
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setImgFade(true)
+      })
+    })
   }
 
   return (
@@ -559,7 +567,7 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose, styles }) {
         width: monitorStyle.width || '21%',
         height: monitorStyle.height || '28%',
         fontFamily: '"Inter", sans-serif',
-        background: 'transparent',
+        background: '#09090b',
         display: 'flex', flexDirection: 'column', overflow: 'hidden',
         opacity: 0, pointerEvents: 'none', zIndex: 10,
         boxSizing: 'border-box',
@@ -572,7 +580,7 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose, styles }) {
           position: 'absolute',
           top: '6px',
           right: '6px',
-          background: 'rgba(0,0,0,0.5)',
+          background: 'rgba(0,0,0,0.6)',
           border: 'none',
           color: '#fff',
           fontSize: '11px',
@@ -591,28 +599,61 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose, styles }) {
           e.currentTarget.style.background = 'rgba(220,38,38,0.8)'
         }}
         onMouseLeave={e => {
-          e.currentTarget.style.background = 'rgba(0,0,0,0.5)'
+          e.currentTarget.style.background = 'rgba(0,0,0,0.6)'
         }}
         >
           ✕
         </button>
-        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', opacity: fade ? 1 : 0, transition: 'opacity 0.18s ease', boxSizing: 'border-box' }}>
-          <img src={project.image} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%', background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%)', pointerEvents: 'none' }} />
-          <div style={{ position: 'absolute', bottom: 'clamp(18px, 3vw, 30px)', left: 'clamp(8px, 1.2vw, 12px)', right: 'clamp(8px, 1.2vw, 12px)' }}>
+
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#09090b', boxSizing: 'border-box' }}>
+          {/* Previous image layer during crossfade */}
+          {prevImg && prevImg !== project.image && (
+            <img 
+              src={prevImg} 
+              alt="" 
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+            />
+          )}
+
+          {/* Current project image layer fading in smoothly */}
+          <img 
+            key={project.image}
+            src={project.image} 
+            alt={project.title} 
+            style={{ 
+              position: 'absolute', 
+              inset: 0, 
+              width: '100%', 
+              height: '100%', 
+              objectFit: 'cover', 
+              display: 'block',
+              opacity: imgFade ? 1 : 0,
+              transition: 'opacity 0.22s ease-in-out'
+            }} 
+          />
+
+          {/* Vignette / Text gradient backdrop */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%', background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%)', pointerEvents: 'none', zIndex: 2 }} />
+
+          {/* Title & Description */}
+          <div style={{ position: 'absolute', bottom: 'clamp(18px, 3vw, 30px)', left: 'clamp(8px, 1.2vw, 12px)', right: 'clamp(8px, 1.2vw, 12px)', zIndex: 3 }}>
             <div style={{ fontSize: 'clamp(10px, 1.1vw, 13px)', fontWeight: '800', color: '#fff', marginBottom: '2px', lineHeight: 1.2 }}>{project.title}</div>
             <div style={{ fontSize: 'clamp(8px, 0.95vw, 11px)', color: 'rgba(255,255,255,0.75)', lineHeight: 1.4, fontWeight: '500' }}>{project.desc}</div>
           </div>
+
+          {/* GitHub link button */}
           <a href={project.github} target="_blank" rel="noopener noreferrer"
-            style={{ position: 'absolute', top: 'clamp(6px, 1vw, 10px)', left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', padding: 'clamp(3px, 0.7vw, 5px) clamp(8px, 1vw, 10px)', borderRadius: '20px', fontSize: 'clamp(8px, 0.9vw, 10px)', fontWeight: '700', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', cursor: 'pointer', transition: 'background 0.2s' }}
+            style={{ position: 'absolute', top: 'clamp(6px, 1vw, 10px)', left: '50%', transform: 'translateX(-50%)', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.25)', color: '#fff', padding: 'clamp(3px, 0.7vw, 5px) clamp(8px, 1vw, 10px)', borderRadius: '20px', fontSize: 'clamp(8px, 0.9vw, 10px)', fontWeight: '700', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap', cursor: 'pointer', transition: 'background 0.2s', zIndex: 3 }}
             onMouseEnter={e => e.currentTarget.style.background = 'rgba(124,58,237,0.8)'}
             onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.65)'}
           >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="white"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
             View on GitHub
           </a>
-          <button onClick={() => go(-1)} style={{ position: 'absolute', bottom: 'clamp(6px, 1vw, 8px)', left: 'clamp(6px, 1vw, 8px)', background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', padding: 'clamp(3px, 0.7vw, 5px) clamp(8px, 1vw, 9px)', borderRadius: '6px', fontSize: 'clamp(8px, 0.9vw, 10px)', fontWeight: '700', cursor: 'pointer', fontFamily: '"Inter", sans-serif' }}>← Prev</button>
-          <button onClick={() => go(1)}  style={{ position: 'absolute', bottom: 'clamp(6px, 1vw, 8px)', right: 'clamp(6px, 1vw, 8px)', background: accent, border: 'none', color: '#fff', padding: 'clamp(3px, 0.7vw, 5px) clamp(8px, 1vw, 9px)', borderRadius: '6px', fontSize: 'clamp(8px, 0.9vw, 10px)', fontWeight: '700', cursor: 'pointer', fontFamily: '"Inter", sans-serif' }}>Next →</button>
+
+          {/* Prev / Next controls */}
+          <button onClick={() => go(-1)} style={{ position: 'absolute', bottom: 'clamp(6px, 1vw, 8px)', left: 'clamp(6px, 1vw, 8px)', background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.3)', color: '#fff', padding: 'clamp(3px, 0.7vw, 5px) clamp(8px, 1vw, 9px)', borderRadius: '6px', fontSize: 'clamp(8px, 0.9vw, 10px)', fontWeight: '700', cursor: 'pointer', fontFamily: '"Inter", sans-serif', zIndex: 3 }}>← Prev</button>
+          <button onClick={() => go(1)}  style={{ position: 'absolute', bottom: 'clamp(6px, 1vw, 8px)', right: 'clamp(6px, 1vw, 8px)', background: accent, border: 'none', color: '#fff', padding: 'clamp(3px, 0.7vw, 5px) clamp(8px, 1vw, 9px)', borderRadius: '6px', fontSize: 'clamp(8px, 0.9vw, 10px)', fontWeight: '700', cursor: 'pointer', fontFamily: '"Inter", sans-serif', zIndex: 3 }}>Next →</button>
         </div>
       </div>
     </>
@@ -854,6 +895,11 @@ export default function App() {
   const clickHandledRef = useRef(false)
   const currentViewRef = useRef('desk')
 
+  // Keep isZoomedRef strictly in sync with isZoomed state
+  useEffect(() => {
+    isZoomedRef.current = isZoomed
+  }, [isZoomed])
+
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (cursorRef.current) {
@@ -923,7 +969,8 @@ export default function App() {
     clickHandledRef.current = true
     currentViewRef.current = objectType
     setCurrentView(objectType)
-    document.body.style.cursor = 'default' // Reset cursor immediately on click
+    setHoveredObject(null)
+    document.body.style.cursor = ''
     setTransitioning(true)
 
     if (!cameraRef.current) return
@@ -997,9 +1044,10 @@ export default function App() {
 
   const handleReturnToDesk = () => {
     setIsZoomed(false)
+    isZoomedRef.current = false
     setHoveredObject(null)
     clickHandledRef.current = false
-    document.body.style.cursor = 'default' // Reset cursor immediately
+    document.body.style.cursor = ''
     setTransitioning(true)
 
     // Hide all UI panels
