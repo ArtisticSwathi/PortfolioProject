@@ -121,14 +121,13 @@ function ScreenProjector({ onProjected }) {
 
 // ─── CURSOR PARALLAX ──────────────────────────────────────────────────────────
 // Tracks mouse position and applies subtle parallax camera offset
-function CursorParallax({ isZoomed, isZoomedRef, camera }) {
+function CursorParallax({ isZoomed, isZoomedRef, transitioning, camera }) {
   const mouseX = useRef(0)
   const mouseY = useRef(0)
-  const basePosition = useRef({ x: camera.position.x, y: camera.position.y, z: camera.position.z })
 
   useEffect(() => {
     const handleMouseMove = (e) => {
-      if (isZoomedRef && isZoomedRef.current) return
+      if (isZoomed || transitioning || (isZoomedRef && isZoomedRef.current)) return
       const x = (e.clientX / window.innerWidth) * 2 - 1
       const y = -(e.clientY / window.innerHeight) * 2 + 1
       mouseX.current = x
@@ -136,7 +135,7 @@ function CursorParallax({ isZoomed, isZoomedRef, camera }) {
     }
 
     const handleTouchMove = (e) => {
-      if (isZoomedRef && isZoomedRef.current) return
+      if (isZoomed || transitioning || (isZoomedRef && isZoomedRef.current)) return
       if (e.touches && e.touches.length > 0) {
         const touch = e.touches[0]
         const x = (touch.clientX / window.innerWidth) * 2 - 1
@@ -155,16 +154,19 @@ function CursorParallax({ isZoomed, isZoomedRef, camera }) {
       window.removeEventListener('touchmove', handleTouchMove)
       window.removeEventListener('touchstart', handleTouchMove)
     }
-  }, [isZoomedRef])
+  }, [isZoomed, transitioning, isZoomedRef])
 
   useFrame(() => {
-    if ((isZoomedRef && isZoomedRef.current) || !camera) return
-    const offsetX = mouseX.current * 0.08
-    const offsetY = mouseY.current * 0.05
+    if (isZoomed || transitioning || (isZoomedRef && isZoomedRef.current) || !camera) return
+    const deskBase = { x: 0.20, y: 1.03, z: 0.37 }
+    const offsetX = mouseX.current * 0.05
+    const offsetY = mouseY.current * 0.03
     gsap.to(camera.position, {
-      x: basePosition.current.x + offsetX,
-      y: basePosition.current.y + offsetY,
-      duration: 0.5,
+      x: deskBase.x + offsetX,
+      y: deskBase.y + offsetY,
+      z: deskBase.z,
+      duration: 0.6,
+      ease: 'power1.out',
       overwrite: 'auto',
     })
   })
@@ -177,6 +179,7 @@ export default function PortfolioDesk({
   aboutRef, monitorRef, sideRef, phoneRef,
   isZoomed,
   isZoomedRef,
+  transitioning,
   onObjectClick,
   setHoveredObject,
   hoveredObject,
@@ -223,20 +226,20 @@ export default function PortfolioDesk({
   }
 
   const handlePointerMove = (e) => {
-    if (isZoomedRef && isZoomedRef.current) return
+    if (isZoomed || transitioning || (isZoomedRef && isZoomedRef.current)) return
     e.stopPropagation()
     const target = getObjectName(e.object)
     setHoveredObject(target)
   }
 
   const handlePointerOut = (e) => {
-    if (isZoomedRef && isZoomedRef.current) return
+    if (isZoomed || transitioning || (isZoomedRef && isZoomedRef.current)) return
     e.stopPropagation()
     setHoveredObject(null)
   }
 
   const handleClick = (e) => {
-    if (isZoomedRef && isZoomedRef.current) return
+    if (isZoomed || transitioning || (isZoomedRef && isZoomedRef.current)) return
     e.stopPropagation()
     
     // Prevent default tap behaviors on touch devices to bypass delays/double-triggering
@@ -265,13 +268,13 @@ export default function PortfolioDesk({
       )}
 
       {/* 3D Red Spotting Glow Light when hovering over main objects */}
-      {!isZoomed && hoveredObject === 'about' && (
+      {!isZoomed && !transitioning && hoveredObject === 'about' && (
         <pointLight position={[-0.37, 0.65, -1.45]} intensity={5.0} color="#ff007f" distance={2.0} />
       )}
-      {!isZoomed && hoveredObject === 'monitor' && (
+      {!isZoomed && !transitioning && hoveredObject === 'monitor' && (
         <pointLight position={[-0.14, 0.70, -1.60]} intensity={5.0} color="#ff007f" distance={2.0} />
       )}
-      {!isZoomed && hoveredObject === 'phone' && (
+      {!isZoomed && !transitioning && hoveredObject === 'phone' && (
         <pointLight position={[0.48, 0.60, -1.40]} intensity={5.0} color="#ff007f" distance={2.0} />
       )}
       
@@ -315,7 +318,7 @@ export default function PortfolioDesk({
         </group>
       )}
 
-      <CursorParallax isZoomed={isZoomed} isZoomedRef={isZoomedRef} camera={camera} />
+      <CursorParallax isZoomed={isZoomed} isZoomedRef={isZoomedRef} transitioning={transitioning} camera={camera} />
       {isDarkMode && (
         <pointLight position={[-0.14, 0.55, -0.8]} intensity={2.5} color="#b87af8" distance={3} />
       )}

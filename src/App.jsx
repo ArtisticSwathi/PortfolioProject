@@ -1090,8 +1090,8 @@ export default function App() {
       lookX: target.lookAt[0],
       lookY: target.lookAt[1],
       lookZ: target.lookAt[2],
-      duration: 1.2,
-      ease: 'power2.inOut',
+      duration: 1.1,
+      ease: 'power2.out',
       onComplete: () => {
         isZoomedRef.current = false
         setTransitioning(false)
@@ -1246,6 +1246,7 @@ useEffect(() => {
               phoneRef={phoneRef}
               isZoomed={isZoomed}
               isZoomedRef={isZoomedRef}
+              transitioning={transitioning}
               onObjectClick={handleObjectClick}
               setHoveredObject={setHoveredObject}
               hoveredObject={hoveredObject}
