@@ -995,19 +995,11 @@ export default function App() {
       lookZ: startLookAt[2],
     }
 
-    // Hide all panels first
-    if (aboutRef.current) {
-      gsap.to(aboutRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.2 })
-    }
-    if (monitorRef.current) {
-      gsap.to(monitorRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.2 })
-    }
-    if (sideRef.current) {
-      gsap.to(sideRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.2 })
-    }
-    if (phoneRef.current) {
-      gsap.to(phoneRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.2 })
-    }
+    // Hide all panels immediately
+    if (aboutRef.current) gsap.set(aboutRef.current, { opacity: 0, pointerEvents: 'none' })
+    if (monitorRef.current) gsap.set(monitorRef.current, { opacity: 0, pointerEvents: 'none' })
+    if (sideRef.current) gsap.set(sideRef.current, { opacity: 0, pointerEvents: 'none' })
+    if (phoneRef.current) gsap.set(phoneRef.current, { opacity: 0, pointerEvents: 'none' })
 
     // Create GSAP timeline for smooth camera animation with update callback
     const timeline = gsap.timeline({
@@ -1050,19 +1042,11 @@ export default function App() {
     document.body.style.cursor = ''
     setTransitioning(true)
 
-    // Hide all UI panels
-    if (aboutRef.current) {
-      gsap.to(aboutRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.3 })
-    }
-    if (monitorRef.current) {
-      gsap.to(monitorRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.3 })
-    }
-    if (sideRef.current) {
-      gsap.to(sideRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.3 })
-    }
-    if (phoneRef.current) {
-      gsap.to(phoneRef.current, { opacity: 0, pointerEvents: 'none', duration: 0.3 })
-    }
+    // Hide all UI panels immediately
+    if (aboutRef.current) gsap.set(aboutRef.current, { opacity: 0, pointerEvents: 'none' })
+    if (monitorRef.current) gsap.set(monitorRef.current, { opacity: 0, pointerEvents: 'none' })
+    if (sideRef.current) gsap.set(sideRef.current, { opacity: 0, pointerEvents: 'none' })
+    if (phoneRef.current) gsap.set(phoneRef.current, { opacity: 0, pointerEvents: 'none' })
 
     if (!cameraRef.current) return
 
@@ -1302,7 +1286,8 @@ useEffect(() => {
           {isDarkMode ? '☀ Light mode' : '☾ Dark mode'}
         </button>
         <a 
-          href="/model/Fullstack-resume.pdf" 
+          href="/model/Portfolio-resume.pdf" 
+          download="Portfolio-resume.pdf"
           target="_blank"
           rel="noopener noreferrer"
           style={{
