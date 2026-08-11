@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useLayoutEffect, useCallback, Suspense } from 'react'
+﻿import { useState, useRef, useEffect, useLayoutEffect, useCallback, Suspense } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Environment, useProgress } from '@react-three/drei'
 import * as THREE from 'three'
@@ -28,6 +28,22 @@ const PROJECTS = [
   github: 'https://github.com/ArtisticSwathi/Stylized-Isometric-Interior.git',
   extras: ['/images/stylized-room-2.jpg', '/images/stylized-room-3.jpg', '/images/stylized-room.jpg']
 },
+{
+  title: 'Architectural Door Models',
+  desc: 'Detailed architectural door models crafted in Blender — exploring modern minimalism and traditional Indian craftsmanship.',
+  image: '/images/Door-1.png',
+  github: 'https://github.com/ArtisticSwathi',
+  monitorImages: [
+ 
+    { src: '/images/Door-2.png' },
+  ],
+  extras: [
+    '/images/Door-1.png',
+    '/images/Door-1-2.png',
+    '/images/Door-2.png',
+    '/images/Door-2-2.png',
+  ]
+},
 
 {
   title: 'Samsung Galaxy Showcase',
@@ -43,7 +59,8 @@ const PROJECTS = [
     '/images/Samsung-6.png'
     
   ]
-}
+},
+
 ]
 
 // ─── LOADING SCREEN ───────────────────────────────────────────────────────────
@@ -539,13 +556,40 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose, styles }) {
   const [index, setIndex] = useState(0)
   const [prevImg, setPrevImg] = useState(PROJECTS[0].image)
   const [imgFade, setImgFade] = useState(true)
+  // For projects with multiple monitor images (e.g. Architectural Door Models)
+  const [monitorImgIdx, setMonitorImgIdx] = useState(0)
+  const [monitorImgFade, setMonitorImgFade] = useState(true)
   const accent  = isDarkMode ? '#bb86fc' : '#7c3aed'
   const project = PROJECTS[index]
   const monitorStyle = styles?.monitor || {}
 
+  // Reset monitor image index when project changes
+  useEffect(() => { setMonitorImgIdx(0); setMonitorImgFade(true) }, [index])
+
+  // Auto-cycle monitor images for projects that have monitorImages
+  useEffect(() => {
+    if (!project.monitorImages || project.monitorImages.length <= 1) return
+    const timer = setInterval(() => {
+      setMonitorImgFade(false)
+      setTimeout(() => {
+        setMonitorImgIdx(i => (i + 1) % project.monitorImages.length)
+        setMonitorImgFade(true)
+      }, 220)
+    }, 3000)
+    return () => clearInterval(timer)
+  }, [index, project.monitorImages])
+
+  // Resolve which image to show in the monitor
+  const monitorImg = project.monitorImages
+    ? project.monitorImages[monitorImgIdx].src
+    : project.image
+  const monitorLabel = project.monitorImages
+    ? project.monitorImages[monitorImgIdx].label
+    : null
+
   const go = (dir) => {
     const nextIdx = (index + dir + PROJECTS.length) % PROJECTS.length
-    setPrevImg(PROJECTS[index].image)
+    setPrevImg(monitorImg)
     setIndex(nextIdx)
     setImgFade(false)
     requestAnimationFrame(() => {
@@ -607,7 +651,7 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose, styles }) {
 
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden', background: '#09090b', boxSizing: 'border-box' }}>
           {/* Previous image layer during crossfade */}
-          {prevImg && prevImg !== project.image && (
+          {prevImg && prevImg !== monitorImg && (
             <img 
               src={prevImg} 
               alt="" 
@@ -617,8 +661,8 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose, styles }) {
 
           {/* Current project image layer fading in smoothly */}
           <img 
-            key={project.image}
-            src={project.image} 
+            key={monitorImg}
+            src={monitorImg} 
             alt={project.title} 
             style={{ 
               position: 'absolute', 
@@ -627,7 +671,7 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose, styles }) {
               height: '100%', 
               objectFit: 'cover', 
               display: 'block',
-              opacity: imgFade ? 1 : 0,
+              opacity: (imgFade && monitorImgFade) ? 1 : 0,
               transition: 'opacity 0.22s ease-in-out'
             }} 
           />
@@ -635,9 +679,27 @@ function MonitorOverlay({ isDarkMode, monitorRef, sideRef, onClose, styles }) {
           {/* Vignette / Text gradient backdrop */}
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%', background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, transparent 100%)', pointerEvents: 'none', zIndex: 2 }} />
 
+          {/* Monitor image type indicator dots (only for projects with monitorImages) */}
+          {project.monitorImages && project.monitorImages.length > 1 && (
+            <div style={{ position: 'absolute', top: 'clamp(6px, 1vw, 10px)', right: 'clamp(28px, 3vw, 34px)', display: 'flex', gap: '4px', zIndex: 3 }}>
+              {project.monitorImages.map((_, i) => (
+                <div
+                  key={i}
+                  onClick={() => { setMonitorImgFade(false); setTimeout(() => { setMonitorImgIdx(i); setMonitorImgFade(true) }, 220) }}
+                  style={{ width: i === monitorImgIdx ? '14px' : '5px', height: '5px', borderRadius: '3px', background: i === monitorImgIdx ? accent : 'rgba(255,255,255,0.35)', transition: 'all 0.3s ease', cursor: 'pointer' }}
+                />
+              ))}
+            </div>
+          )}
+
           {/* Title & Description */}
           <div style={{ position: 'absolute', bottom: 'clamp(18px, 3vw, 30px)', left: 'clamp(8px, 1.2vw, 12px)', right: 'clamp(8px, 1.2vw, 12px)', zIndex: 3 }}>
             <div style={{ fontSize: 'clamp(10px, 1.1vw, 13px)', fontWeight: '800', color: '#fff', marginBottom: '2px', lineHeight: 1.2 }}>{project.title}</div>
+            {/* Show type label for door-type projects, else show desc */}
+            {monitorLabel ? (
+              <div style={{ fontSize: 'clamp(7px, 0.85vw, 10px)', color: accent, lineHeight: 1.4, fontWeight: '700', letterSpacing: '0.02em', marginBottom: '2px',
+                opacity: monitorImgFade ? 1 : 0, transition: 'opacity 0.22s ease-in-out' }}>{monitorLabel}</div>
+            ) : null}
             <div style={{ fontSize: 'clamp(8px, 0.95vw, 11px)', color: 'rgba(255,255,255,0.75)', lineHeight: 1.4, fontWeight: '500' }}>{project.desc}</div>
           </div>
 
