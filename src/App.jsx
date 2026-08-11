@@ -32,7 +32,7 @@ const PROJECTS = [
   title: 'Architectural Door Models',
   desc: 'Detailed architectural door models crafted in Blender — exploring modern minimalism and traditional Indian craftsmanship.',
   image: '/images/Door-1.png',
-  github: 'https://github.com/ArtisticSwathi',
+  github: 'https://github.com/ArtisticSwathi/Interior-Doors.git',
   monitorImages: [
  
     { src: '/images/Door-2.png' },
